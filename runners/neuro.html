@@ -1,0 +1,454 @@
+<!DOCTYPE html> <html lang="fr"> <head> <meta charset="utf-8"> <meta name="viewport" content="width=device-width, initial-scale=1"> <title>Carnet d'épreuves — mémoire de travail, interférence, motricité</title> <style>   :root{     --paper:#E6E9E4; --paper-2:#F2F4F0; --ink:#1C2321; --ink-soft:#5A635C;     --plum:#6B3F5B; --ochre:#B8811F; --moss:#3E6B4F; --rule:#C3C9BE; --neutral:#8C8C8C;     --display:"Palatino Linotype",Palatino,"Iowan Old Style",Georgia,serif;     --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;     --data:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;   }   *{box-sizing:border-box}   body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);line-height:1.55}   .wrap{max-width:880px;margin:0 auto;padding:32px 20px 80px}   h1,h2,h3{font-family:var(--display);font-weight:600;margin:0;letter-spacing:-.01em}   h1{font-size:2rem;line-height:1.15} h2{font-size:1.3rem;margin:28px 0 8px} h3{font-size:1.02rem;margin:18px 0 6px}   p{margin:8px 0} .lede{color:var(--ink-soft);max-width:62ch}   .eyebrow{font-family:var(--data);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--plum);margin-bottom:6px}   .card{background:var(--paper-2);border:1px solid var(--rule);padding:20px;margin:16px 0}   button{font-family:var(--body);font-size:.95rem;background:var(--ink);color:var(--paper-2);border:1px solid var(--ink);padding:10px 18px;cursor:pointer}   button:hover{background:var(--plum);border-color:var(--plum)}   button.ghost{background:transparent;color:var(--ink);border-color:var(--rule)}   button.ghost:hover{border-color:var(--ink)}   button:focus-visible,input:focus-visible{outline:2px solid var(--ochre);outline-offset:2px}   label{display:block;font-size:.85rem;color:var(--ink-soft);margin-bottom:3px}   input{font-family:var(--data);font-size:.9rem;padding:7px 9px;border:1px solid var(--rule);background:#fff;width:100%}   .grid{display:grid;gap:14px}.g3{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}   .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}   .muted{color:var(--ink-soft);font-size:.85rem}   table{border-collapse:collapse;width:100%;font-size:.9rem;margin-top:8px}   th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--rule)}   th{font-family:var(--data);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);font-weight:500}   td.num{font-family:var(--data)}   .flag{font-family:var(--data);font-size:.75rem;padding:2px 7px;border:1px solid}   .flag.ok{color:var(--moss);border-color:var(--moss)}   .flag.watch{color:var(--ochre);border-color:var(--ochre)}   .flag.out{color:var(--plum);border-color:var(--plum)}   .warn{border-left:3px solid var(--ochre);padding-left:14px;margin:18px 0}   textarea{width:100%;height:120px;font-family:var(--data);font-size:.78rem;border:1px solid var(--rule);padding:10px;background:#fff}   /* scène */   #stage{position:fixed;inset:0;background:var(--neutral);display:none;align-items:center;justify-content:center;flex-direction:column;z-index:50;user-select:none;-webkit-user-select:none;padding:20px}   #stage.on{display:flex}   #ask{position:fixed;inset:0;background:rgba(20,22,20,.72);z-index:70;     display:none;align-items:center;justify-content:center;padding:24px}   #ask.on{display:flex}   #askBox{background:var(--paper-2);color:var(--ink);border:1px solid var(--rule);     padding:22px;max-width:340px;width:100%}   #askBox p{margin:0 0 16px}   #askBox .row{margin:0;gap:10px}   #quit{position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);right:10px;z-index:60;     background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.45);color:#F2F2F2;     font-size:.82rem;padding:8px 14px}   #quit:hover{background:rgba(0,0,0,.38);border-color:#fff}   #board{display:flex;flex-direction:column;align-items:center;gap:22px;width:100%;max-width:640px}   .big{font-family:var(--data);font-size:min(18vh,120px);color:#141414;line-height:1;min-height:1em}   .instr{color:#F2F2F2;text-align:center;font-size:1rem;max-width:44ch}   .fb{color:#F2F2F2;min-height:1.6em;font-size:1.05rem} .saisie{font-family:var(--data);font-size:2.1rem;color:#141414;background:#F2F2F0;     border:1px solid #4a4a4a;padding:8px 18px;min-width:200px;text-align:center;letter-spacing:.14em}   .pave{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;width:min(78vw,300px)}   .pave button{font-family:var(--data);font-size:1.5rem;padding:16px 0;background:#F2F2F0;color:#1a1a1a;border-color:#4a4a4a}   .row2{display:flex;gap:10px}   .row2 .petit{background:transparent;color:#F2F2F2;border-color:rgba(255,255,255,.5);font-size:.85rem;padding:8px 14px}   .corsiGrid{position:relative;width:min(88vw,510px);aspect-ratio:255/205;height:auto;background:#777;border:1px solid #555}   .blk{position:absolute;width:11.765%;height:14.634%;background:#6E6E6E;border:1px solid #4a4a4a;cursor:pointer}   .blk.lit{background:#F0E3B8;border-color:#111}   .blk.pick{background:#9FB8A4}   .stroopWord{font-family:var(--data);font-weight:700;font-size:min(14vh,90px);line-height:1;min-height:1em}   .choices{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}   .choices button{min-width:110px;background:#F2F2F0;color:#1a1a1a;border-color:#4a4a4a}   .adultPanel{background:#F2F2F0;color:#1a1a1a;padding:14px;border:1px solid #555;width:min(90vw,460px)} .adultPanel input{font-size:1.35rem;text-align:center;letter-spacing:.12em} #tapZone{width:min(80vw,420px);height:34vh;background:rgba(0,0,0,.14);border:1px solid #5a5a5a;color:#F2F2F2;display:flex;align-items:center;justify-content:center;font-size:1.1rem;cursor:pointer}   @media (prefers-reduced-motion:reduce){*{transition:none !important}} 
+  select{font-family:var(--data);font-size:.9rem;padding:7px 9px;border:1px solid var(--rule);background:#fff;width:100%}
+  .flag.a{color:var(--moss);border-color:var(--moss)}
+  .flag.b{color:var(--ochre);border-color:var(--ochre)}
+  .flag.c{color:var(--plum);border-color:var(--plum)}
+  .flag.d{color:var(--neutral);border-color:var(--neutral)}
+  .evidence{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+  .colorPads{display:grid;grid-template-columns:repeat(4,minmax(64px,110px));gap:12px;justify-content:center;width:100%;margin-bottom:24px}
+  .colorPad{height:74px;border:3px solid rgba(255,255,255,.72);position:relative;cursor:pointer;padding:0;background:var(--c)}
+  .colorPad:hover,.colorPad:focus-visible{background:var(--c);border-color:#fff;outline:2px solid #fff;outline-offset:2px}
+  .colorPad span{position:absolute;left:50%;bottom:-25px;transform:translateX(-50%);color:#fff;font-family:var(--data);font-size:.78rem}
+  .stroopMeta{color:#F2F2F2;font-family:var(--data);font-size:.78rem;text-align:center;min-height:1.2em}
+  .mono{font-family:var(--data)}
+  .small{font-size:.78rem}
+</style> </head> <body>
+<div class="wrap">
+  <section id="home">
+    <div class="eyebrow">Carnet d'épreuves · batterie V4</div>
+    <h1>Mémoire de travail, interférence,<br>régularité motrice</h1>
+    <p class="lede">Quatre épreuves numériques destinées à décrire le fonctionnement de l'enfant : mémoire visuo-spatiale, maintien et manipulation séquentielle, interférence cognitive et régularité motrice. Les données brutes sont conservées afin de permettre une lecture professionnelle et un suivi longitudinal.</p>
+
+    <div class="warn"><p class="muted"><strong>Statut scientifique.</strong> La batterie distingue explicitement les références publiées des indicateurs fonctionnels. Aucun résultat ne constitue à lui seul un diagnostic. Les adaptations numériques, linguistiques ou motrices sont signalées lorsqu'elles limitent la comparabilité avec une publication.</p></div>
+
+    <div class="card">
+      <h3>Séance</h3>
+      <div class="grid g3" style="margin-top:10px">
+        <div><label for="pid">Identifiant</label><input id="pid" value="L"></div>
+        <div><label for="age">Âge — version V4</label><input id="age" type="number" value="10" readonly></div>
+        <div><label for="form">Forme de séquences</label><select id="form"><option>A</option><option>B</option><option>C</option></select></div>
+        <div><label for="cond">Contexte</label><input id="cond" placeholder="matin, après l'école…"></div>
+        <div><label for="dominantHand">Main dominante</label><select id="dominantHand"><option value="droite">Droite</option><option value="gauche">Gauche</option></select></div>
+      </div>
+      <p class="muted" style="margin-top:10px">Cette version est volontairement verrouillée à 10 ans. Les formes A/B/C rendent les séquences reproductibles et peuvent être alternées lors d'un suivi ; leur équivalence psychométrique n'est pas établie.</p>
+    </div>
+
+    <div class="evidence">
+      <span class="flag a">A · comparable</span>
+      <span class="flag b">B · référence externe</span>
+      <span class="flag c">C · indicateur dérivé</span>
+      <span class="flag d">D · exploratoire</span>
+    </div>
+
+    <div class="row">
+      <button onclick="epreuve(startCorsi)">1 · Blocs de Corsi</button>
+      <button onclick="epreuve(startDigits)">2 · Empan de chiffres</button>
+      <button onclick="epreuve(startStroop)">3 · Interférence</button>
+      <button onclick="epreuve(startTap)">4 · Tapping régularité</button>
+      <button onclick="epreuve(startTapSpeed)">5 · Tapping vitesse D/G</button>
+    </div>
+    <div class="row"><button class="ghost" onclick="showResults()">Voir le relevé</button></div>
+
+    <h2>1 · Blocs de Corsi — mémoire visuo-spatiale</h2>
+    <p>La disposition, les séquences et la règle d'arrêt reprennent l'étalonnage français de <strong>Fournier &amp; Albaret</strong> : 9 blocs asymétriques, 1 bloc/s, 2 essais par longueur, poursuite si au moins un essai est réussi, direct puis inverse. L'interface tactile reste une adaptation numérique.</p>
+
+    <h2>2 · Empan de chiffres auditif — maintien et manipulation séquentielle</h2>
+    <p>Les chiffres sont <strong>prononcés</strong> à environ un chiffre par seconde. L'enfant répond oralement ; seulement après sa réponse, l'adulte transcrit la séquence entendue. La réponse motrice de l'enfant n'entre donc plus dans le score. La modalité est nettement plus proche du Digit Span auditivo-oral de la littérature.</p>
+
+    <h2>3 · Interférence couleur-mot — inhibition cognitive</h2>
+    <p>Le protocole reprend la structure d'Arsalidou et al. : 16 essais d'entraînement, 140 essais, 7 conditions, stimulus 1350 ms et intervalle 300 ms. Les mots sont toutefois en français et le navigateur remplace le matériel expérimental original ; la comparaison aux données 9–10 ans reste donc de niveau <strong>B</strong>.</p>
+
+    <h2>4 · Tapping — régularité motrice</h2>
+    <p>Trois séries de 10 secondes mesurent le maintien volontaire d'un rythme régulier. Aucun seuil clinique arbitraire n'est appliqué.</p>
+    <h2>5 · Finger tapping — vitesse maximale</h2>
+    <p>Cinq séries de 10 secondes par main, main dominante en premier. Ce test sépare désormais <strong>vitesse motrice répétitive</strong> et <strong>régularité volontaire</strong>. Les références pédiatriques Wilcox &amp; Nordstokke servent de contexte développemental, pas de norme directe car l'appareil diffère.</p>
+  </section>
+
+  <section id="results" style="display:none">
+    <div class="eyebrow">Relevé V4</div>
+    <h1>Relevé de séance</h1>
+    <div id="resultBody"></div>
+    <div class="row">
+      <button class="ghost" onclick="goHome()">Retour</button>
+      <button class="ghost" onclick="copyText('csvOut',this)">Copier le résumé (CSV)</button>
+      <button class="ghost" onclick="copyText('csvDet',this)">Copier le détail (CSV)</button>
+      <button class="ghost" onclick="downloadJSON()">Télécharger JSON brut</button>
+      <button class="ghost" onclick="window.print()">Imprimer / PDF</button>
+    </div>
+  </section>
+</div>
+
+<div id="ask"><div id="askBox">
+  <p id="askText"></p>
+  <div class="row"><button id="askYes">Arrêter</button><button class="ghost" id="askNo">Continuer</button></div>
+</div></div>
+<div id="stage"><button id="quit" onclick="abandon()">Arrêter</button><div id="board"></div></div>
+
+<script>
+'use strict';
+
+const $=id=>document.getElementById(id), stage=$('stage'), board=$('board');
+const BATTERY_VERSION='4.0.0';
+const TEST_VERSIONS={corsi:'4.0-fournier-albaret',digits:'4.0-audio-oral',stroop:'4.0-arsalidou-fr',tap:'4.0-regularity',tapSpeed:'4.0-speed'};
+const SESSION_STARTED=new Date();
+const SESSION_ID=(globalThis.crypto&&crypto.randomUUID?crypto.randomUUID():'s-'+Date.now()+'-'+Math.random().toString(36).slice(2));
+const R={corsi:null,digits:null,stroop:null,tap:null,tapSpeed:null,meta:{}};
+const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:NaN;
+const sd=a=>{if(a.length<2)return NaN;const m=mean(a);return Math.sqrt(a.reduce((s,x)=>s+(x-m)**2,0)/(a.length-1));};
+const median=a=>{if(!a.length)return NaN;const s=[...a].sort((x,y)=>x-y),m=Math.floor(s.length/2);return s.length%2?s[m]:(s[m-1]+s[m])/2;};
+const f=(v,d=0)=>(v===null||v===undefined||Number.isNaN(+v))?'—':(+v).toFixed(d);
+const fr=v=>(v===null||v===undefined||Number.isNaN(+v))?'':String(Math.round(v*100)/100).replace('.',',');
+const level=(l,txt)=>`<span class="flag ${l.toLowerCase()}">${l} · ${txt}</span>`;
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+let ABANDON=null, ABANDONNE=false;
+function screen(html){board.innerHTML=html;stage.classList.add('on');}
+function demander(texte){return new Promise(res=>{$('askText').textContent=texte;$('ask').classList.add('on');$('askYes').onclick=()=>{$('ask').classList.remove('on');res(true);};$('askNo').onclick=()=>{$('ask').classList.remove('on');res(false);};});}
+function sleep(ms){return new Promise((res,rej)=>{if(ABANDONNE){rej(new Error('abandon'));return;}const t=setTimeout(()=>{ABANDON=null;res();},ms);ABANDON=()=>{clearTimeout(t);rej(new Error('abandon'));};});}
+function attend(installer){return new Promise((res,rej)=>{if(ABANDONNE){rej(new Error('abandon'));return;}let done=false;const ok=v=>{if(done)return;done=true;ABANDON=null;res(v);};ABANDON=()=>{if(done)return;done=true;rej(new Error('abandon'));};installer(ok);});}
+async function abandon(){if(!await demander("Arrêter l'épreuve en cours ? Les essais déjà faits dans cette épreuve seront perdus ; les épreuves terminées sont conservées."))return;ABANDONNE=true;const stop=ABANDON;ABANDON=null;stage.classList.remove('on');try{if(document.fullscreenElement)document.exitFullscreen();}catch(e){}if(stop)stop();else goHome();}
+function epreuve(fn){ABANDONNE=false;ABANDON=null;return fn().catch(err=>{if(err&&err.message==='abandon')goHome();else{console.error(err);alert('Erreur pendant l’épreuve : '+err.message);goHome();}}).finally(()=>{ABANDON=null;ABANDONNE=false;});}
+function wait(text,btn='Commencer'){return attend(r=>{screen(`<div class="instr">${text}</div><button id="go">${btn}</button>`);$('go').onclick=r;});}
+function goHome(){ABANDON=null;stage.classList.remove('on');$('home').style.display='block';$('results').style.display='none';scrollTo(0,0);}
+
+function meta(){
+  const lockedForm=R.meta.form||$('form').value||'A';
+  $('form').value=lockedForm; $('form').disabled=true;
+  R.meta={
+    id:$('pid').value||'-', age:10, cond:$('cond').value||'', form:lockedForm, dominantHand:($('dominantHand')&&$('dominantHand').value)||'droite',
+    sessionId:SESSION_ID, batteryVersion:BATTERY_VERSION, testVersions:TEST_VERSIONS,
+    dateLocal:SESSION_STARTED.toLocaleString('fr-FR'), dateUTC:SESSION_STARTED.toISOString(), timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,
+    userAgent:navigator.userAgent, language:navigator.language,
+    viewport:{w:innerWidth,h:innerHeight,dpr:devicePixelRatio||1},
+    screen:{w:window.screen.width,h:window.screen.height}
+  };
+  return R.meta;
+}
+function currentForm(){return ($('form')&&$('form').value)||R.meta.form||'A';}
+
+// Reproductibilité : PRNG déterministe par forme et épreuve.
+function hash32(str){let h=2166136261>>>0;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function mulberry32(seed){return function(){let t=seed+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;};}
+function shuffleSeeded(arr,key){const a=[...arr],rng=mulberry32(hash32(key));for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function seqUnique(pool,len,key){return shuffleSeeded(pool,key).slice(0,len);}
+
+/* ================= 1 · CORSI — FOURNIER & ALBARET ================= */
+const CORSI_POS_MM={1:[130,155],2:[30,145],3:[180,120],4:[70,110],5:[140,90],6:[195,60],7:[15,50],8:[75,20],9:[135,30]};
+const CORSI_SEQ={
+ direct:{
+  example:[[2,6],[7,9]],
+  2:[[8,5],[6,4]],3:[[4,7,2],[8,1,5]],4:[[3,4,1,7],[6,1,5,8]],5:[[5,2,1,8,6],[4,2,7,3,1]],
+  6:[[3,9,2,4,8,7],[3,7,8,2,9,4]],7:[[5,9,1,7,4,2,8],[5,7,9,2,8,4,6]],
+  8:[[5,8,1,9,2,6,4,7],[5,9,3,6,7,2,4,3]],9:[[5,3,8,7,1,2,4,6,9],[4,2,6,8,1,7,9,3,5]]
+ },
+ inverse:{
+  example:[[1,8],[4,6]],
+  2:[[9,4],[7,5]],3:[[6,8,5],[4,6,3]],4:[[2,5,1,8],[9,3,5,2]],5:[[5,3,2,9,7],[3,1,9,4,7]],
+  6:[[1,6,8,4,7,5],[2,6,9,3,8,5]],7:[[5,3,8,6,2,7,4],[2,3,8,5,1,9,7]],
+  8:[[4,9,1,6,3,8,7,5],[4,8,5,9,7,2,1,6]],9:[[3,7,8,1,2,6,4,9,5],[1,5,6,3,8,4,9,2,7]]
+ }
+};
+const CORSI_REF10={direct:{mean:5.46,sd:.80,n:94},inverse:{mean:5.03,sd:1.09,n:94}};
+function corsiBoard(){
+  return `<div class="corsiGrid" id="cg">${Object.entries(CORSI_POS_MM).map(([id,p])=>{
+    const left=p[0]/255*100,top=(205-p[1]-30)/205*100;
+    return `<div class="blk" data-i="${id}" style="left:${left}%;top:${top}%"></div>`;
+  }).join('')}</div>`;
+}
+async function flash(seq){
+  const get=id=>document.querySelector(`.blk[data-i="${id}"]`);
+  document.querySelectorAll('.blk').forEach(b=>b.style.pointerEvents='none');
+  await sleep(500);
+  for(const id of seq){const b=get(id);b.classList.add('lit');await sleep(650);b.classList.remove('lit');await sleep(350);}
+  document.querySelectorAll('.blk').forEach(b=>b.style.pointerEvents='auto');
+}
+function collectCorsi(n){
+  return attend(res=>{
+    let picks=[],times=[],corrections=0;const t0=performance.now();
+    const maj=()=>{const el=$('corsiEntry');if(el)el.textContent=picks.length?`${picks.length} / ${n}`:`0 / ${n}`; const v=$('corsiVal');if(v)v.disabled=picks.length!==n;};
+    document.querySelectorAll('.blk').forEach(b=>b.onclick=()=>{if(picks.length>=n)return;b.classList.add('pick');setTimeout(()=>b.classList.remove('pick'),150);picks.push(+b.dataset.i);times.push(Math.round(performance.now()-t0));maj();});
+    $('corsiUndo').onclick=()=>{if(picks.length){picks.pop();times.pop();corrections++;maj();}};
+    $('corsiVal').onclick=()=>{if(picks.length!==n)return;document.querySelectorAll('.blk').forEach(x=>x.onclick=null);res({picks,times,corrections,rt:Math.round(performance.now()-t0)});};
+    maj();
+  });
+}
+async function corsiOne(seq,inverse,practice,len,essai){
+  screen(`<div class="instr">${practice?'Exemple':'Essai '+essai} — ${inverse?'reproduis <strong>à l’envers</strong>':'reproduis <strong>dans le même ordre</strong>'}</div>${corsiBoard()}<div class="fb" id="fb">Regarde…</div><div class="row2"><button id="corsiUndo" class="petit">Corriger le dernier</button><button id="corsiVal" disabled>Valider <span id="corsiEntry">0 / ${seq.length}</span></button></div>`);
+  await flash(seq);$('fb').textContent='À toi';
+  const rr=await collectCorsi(seq.length),target=inverse?[...seq].reverse():seq,ok=rr.picks.every((v,i)=>v===target[i]);
+  if(practice){$('fb').textContent=ok?'Juste':'Regarde bien la séquence';await sleep(650);}
+  return {len,essai,sens:inverse?'inverse':'direct',stimulusSequence:seq,responseSequence:rr.picks,targetSequence:target,responseTimesMs:rr.times,corrections:rr.corrections,rt:rr.rt,ok,practice};
+}
+async function corsiExamples(inverse){const mode=inverse?'inverse':'direct';for(let i=0;i<2;i++)await corsiOne(CORSI_SEQ[mode].example[i],inverse,true,2,i+1);}
+async function corsiPhase(inverse){
+  const trials=[];let span=0;const mode=inverse?'inverse':'direct';
+  for(let len=2;len<=9;len++){
+    let okThis=0;
+    for(let t=0;t<2;t++){const rec=await corsiOne(CORSI_SEQ[mode][len][t],inverse,false,len,t+1);trials.push(rec);if(rec.ok)okThis++;}
+    if(okThis===0)break;span=len;
+  }
+  return {span,trials};
+}
+async function startCorsi(){
+  meta();await wait("Cette passation reprend l'étalonnage français de Fournier & Albaret.<br><br><strong>Direct d'abord</strong>, puis inverse. Deux exemples précèdent chaque partie. Une auto-correction avant validation est acceptée.");
+  await corsiExamples(false);const d=await corsiPhase(false);
+  await wait("Deuxième partie : reproduis maintenant les cases <strong>dans l'ordre inverse</strong>.");await corsiExamples(true);const i=await corsiPhase(true);
+  R.corsi={version:TEST_VERSIONS.corsi,protocol:'Fournier-Albaret',digitalAdaptation:true,direct:d.span,inverse:i.span,ecart:d.span-i.span,ordre:'direct_puis_inverse',trials:[...d.trials,...i.trials]};
+  stage.classList.remove('on');showResults();
+}
+
+/* ================= 2 · EMPAN DE CHIFFRES — AUDIO / RÉPONSE ORALE ================= */
+function digitSeq(len,trial,inverse){return seqUnique([1,2,3,4,5,6,7,8,9],len,`digits-audio|${currentForm()}|${inverse?'inv':'dir'}|${len}|${trial}`);}
+function chooseFrenchVoice(){const vs=speechSynthesis.getVoices();return vs.find(v=>/^fr(-|_)/i.test(v.lang)&&/France|fr-FR/i.test(v.lang))||vs.find(v=>/^fr/i.test(v.lang))||null;}
+async function speakDigit(n){
+  if(!('speechSynthesis' in window))throw new Error("Synthèse vocale non disponible");
+  return new Promise(resolve=>{
+    const u=new SpeechSynthesisUtterance(String(n)),v=chooseFrenchVoice();if(v)u.voice=v;u.lang=(v&&v.lang)||'fr-FR';u.rate=.86;u.pitch=1;u.volume=1;
+    const t0=performance.now();u.onend=()=>resolve({duration:performance.now()-t0,voice:v?v.name:'default',lang:u.lang,rate:u.rate});u.onerror=()=>resolve({duration:performance.now()-t0,voice:v?v.name:'default',lang:u.lang,rate:u.rate,error:true});speechSynthesis.speak(u);
+  });
+}
+async function playDigits(seq){
+  speechSynthesis.cancel();const logs=[];
+  for(const n of seq){const t0=performance.now(),info=await speakDigit(n);logs.push({digit:n,...info});const elapsed=performance.now()-t0;if(elapsed<1000)await sleep(1000-elapsed);}
+  return logs;
+}
+function adultDigitEntry(len){
+  return attend(done=>{
+    let val='';const maj=()=>{$('digitAdultVal').value=val;$('digitSave').disabled=val.length!==len;};
+    document.querySelectorAll('#adultPad button[data-n]').forEach(b=>b.onclick=()=>{if(val.length<len){val+=b.dataset.n;maj();}});
+    $('digitBack').onclick=()=>{val=val.slice(0,-1);maj();};
+    $('digitClear').onclick=()=>{val='';maj();};
+    $('digitSave').onclick=()=>{if(val.length===len)done(val);};maj();
+  });
+}
+async function digitTrial(seq,inverse,len,essai){
+  screen(`<div class="instr">Écoute. ${inverse?'Tu devras répéter les chiffres <strong>à l’envers</strong>.':'Tu devras les répéter <strong>dans le même ordre</strong>.'}<br><span style="opacity:.75">Aucun chiffre n’est affiché.</span></div><div class="big" aria-hidden="true">♫</div><div class="fb" id="fb">Écoute…</div>`);
+  const audioLog=await playDigits(seq);await sleep(250);
+  screen(`<div class="instr"><strong>L’enfant répond maintenant oralement.</strong><br>Adulte : ne saisissez la réponse qu’une fois l’enfant terminé.</div><button id="adultReady">Réponse orale terminée — saisir</button>`);
+  await attend(r=>{$('adultReady').onclick=r;});
+  screen(`<div class="adultPanel"><strong>Saisie par l’adulte</strong><p class="muted">Transcrire exactement la réponse orale de l’enfant (${len} chiffres).</p><input id="digitAdultVal" readonly aria-label="Réponse transcrite"><div class="pave" id="adultPad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button data-n="${n}">${n}</button>`).join('')}</div><div class="row2"><button id="digitBack" class="petit">← dernier</button><button id="digitClear" class="petit">Effacer</button><button id="digitSave">Enregistrer</button></div></div>`);
+  const val=await adultDigitEntry(len),target=(inverse?[...seq].reverse():seq).join(''),ok=val===target;
+  return {len,essai,sens:inverse?'inverse':'direct',stimulusSequence:seq,responseSequence:val.split('').map(Number),targetSequence:target.split('').map(Number),ok,audioLog,responseMode:'oral_child_adult_transcription'};
+}
+async function digitPhase(inverse){
+  const trials=[];let spanMax=0,totalCorrect=0,essaisFaits=0;
+  for(let len=2;len<=8;len++){
+    let okThis=0;
+    for(let t=0;t<2;t++){essaisFaits++;const rec=await digitTrial(digitSeq(len,t,inverse),inverse,len,t+1);trials.push(rec);if(rec.ok){okThis++;totalCorrect++;spanMax=len;}}
+    if(okThis===0)break;
+  }
+  return{spanMax,totalCorrect,essaisFaits,trials};
+}
+async function startDigits(){
+  meta();if(!('speechSynthesis' in window)){message("La synthèse vocale du navigateur n'est pas disponible. Utilisez un navigateur avec speechSynthesis pour cette version auditivo-orale.");return;}
+  await wait("Les chiffres vont être <strong>prononcés</strong>, environ un par seconde. L'enfant regarde ailleurs ou ferme les yeux si besoin.<br><br>L'enfant répond <strong>oralement</strong>. L'adulte transcrit seulement après la fin de la réponse. Direct d'abord, inverse ensuite.");
+  const d=await digitPhase(false);await wait("Maintenant, l'enfant répète chaque série <strong>à l'envers</strong>.");const i=await digitPhase(true);
+  const voiceInfo=[...d.trials,...i.trials].flatMap(t=>t.audioLog||[]).find(x=>x.voice);
+  R.digits={version:TEST_VERSIONS.digits,form:currentForm(),modality:'auditory_oral',responseMode:'adult_transcription_after_oral_response',presentationRate:'~1 digit/s',voice:voiceInfo?{name:voiceInfo.voice,lang:voiceInfo.lang,rate:voiceInfo.rate}:null,direct:d.spanMax,inverse:i.spanMax,ecart:d.spanMax-i.spanMax,totalDirect:d.totalCorrect,totalInverse:i.totalCorrect,ordre:'direct_puis_inverse',trials:[...d.trials,...i.trials]};
+  stage.classList.remove('on');showResults();
+}
+
+/* ================= 3 · STROOP ARSALIDOU-INSPIRED ================= */
+const CW=[
+  {name:'ORANGE',css:'#E87524',key:'D'},
+  {name:'JAUNE',css:'#D4B100',key:'F'},
+  {name:'VIOLET',css:'#7951A8',key:'J'},
+  {name:'BLANC',css:'#F3F3F0',key:'K'}
+];
+const STROOP_CONDS=['baseline','wordCong','wordIncong','firstlastCong','firstlastIncong','scrambledCong','scrambledIncong'];
+const STROOP_LABEL={baseline:'Baseline couleur',wordCong:'Mot congruent',wordIncong:'Mot incongruent',firstlastCong:'1re/dernière congruent',firstlastIncong:'1re/dernière incongruent',scrambledCong:'Mélangé congruent',scrambledIncong:'Mélangé incongruent'};
+const ARS10={
+ baseline:{rt:885,sd:83,err:.09,errSd:.09},wordCong:{rt:831,sd:75,err:.10,errSd:.10},wordIncong:{rt:912,sd:73,err:.18,errSd:.16},
+ firstlastCong:{rt:884,sd:92,err:.13,errSd:.13},firstlastIncong:{rt:903,sd:95,err:.14,errSd:.14},scrambledCong:{rt:876,sd:74,err:.13,errSd:.11},scrambledIncong:{rt:898,sd:85,err:.10,errSd:.11},
+ wordDiff:{m:59,sd:117},firstlastDiff:{m:50,sd:85},scrambledDiff:{m:45,sd:59},facilitation:{m:-21,sd:63}
+};
+function scrambleWord(word,key,keepEnds){const chars=[...word];if(keepEnds&&chars.length>3){const mid=shuffleSeeded(chars.slice(1,-1),key);let s=chars[0]+mid.join('')+chars.at(-1);if(s===word){mid.reverse();s=chars[0]+mid.join('')+chars.at(-1);}return s;}let sh=shuffleSeeded(chars,key).join('');if(sh===word)sh=chars.slice(1).concat(chars[0]).join('');return sh;}
+function stroopStimulus(cond,ink,wordIdx,index){if(cond==='baseline')return 'XXXXXX';const base=CW[wordIdx].name;if(cond.startsWith('firstlast'))return scrambleWord(base,`fl|${currentForm()}|${index}`,true);if(cond.startsWith('scrambled'))return scrambleWord(base,`sc|${currentForm()}|${index}`,false);return base;}
+function makeStroopPlan(){
+  const runs=[[],[]]; let idx=0;
+  for(const cond of STROOP_CONDS){
+    const inks=[]; for(let c=0;c<4;c++)for(let k=0;k<5;k++)inks.push(c);
+    const shuffled=shuffleSeeded(inks,`stroop|${currentForm()}|${cond}|inks`);
+    for(let j=0;j<20;j++){
+      const ink=shuffled[j]; let wordIdx=ink;
+      if(cond.toLowerCase().includes('incong')){const offs=[1,2,3][j%3];wordIdx=(ink+offs)%4;}
+      const stim=stroopStimulus(cond,ink,wordIdx,idx);
+      runs[j<10?0:1].push({id:++idx,run:j<10?1:2,cond,ink,wordIdx,stim});
+    }
+  }
+  const pseudoRandomize=(items,runNo)=>{
+    const pool=[...items],out=[],rng=mulberry32(hash32(`stroop-plan|${currentForm()}|run${runNo}`));
+    while(pool.length){
+      let candidates=pool.map((x,i)=>({x,i})); const prev=out.at(-1);
+      if(prev){
+        const strict=candidates.filter(({x})=>x.cond!==prev.cond&&x.ink!==prev.ink&&x.ink!==prev.wordIdx&&x.wordIdx!==prev.ink);
+        if(strict.length)candidates=strict; else {const relaxed=candidates.filter(({x})=>x.cond!==prev.cond&&x.ink!==prev.ink);if(relaxed.length)candidates=relaxed;}
+      }
+      const pick=candidates[Math.floor(rng()*candidates.length)]; out.push(pick.x); pool.splice(pick.i,1);
+    }
+    return out;
+  };
+  return [...pseudoRandomize(runs[0],1),...pseudoRandomize(runs[1],2)];
+}
+function makeStroopPractice(){
+  const conds=['baseline','wordCong','wordIncong','firstlastCong','firstlastIncong','scrambledCong','scrambledIncong'];
+  const items=[];
+  for(let i=0;i<16;i++){
+    const cond=conds[i%conds.length],ink=i%4; let wordIdx=ink;
+    if(cond.toLowerCase().includes('incong'))wordIdx=(ink+1+(i%3))%4;
+    items.push({id:'p'+(i+1),run:0,cond,ink,wordIdx,stim:stroopStimulus(cond,ink,wordIdx,1000+i)});
+  }
+  return shuffleSeeded(items,`stroop-practice|${currentForm()}`);
+}
+function responsePads(){return `<div class="colorPads">${CW.map((c,i)=>`<button class="colorPad" data-color="${i}" style="--c:${c.css}" aria-label="${c.name}"><span>${c.key}</span></button>`).join('')}</div>`;}
+function waitColorResponse(windowMs){return new Promise((resolve,reject)=>{if(ABANDONNE){reject(new Error('abandon'));return;}let done=false,t0=performance.now();const cleanup=()=>{clearTimeout(timer);document.removeEventListener('keydown',onKey);document.querySelectorAll('.colorPad').forEach(b=>b.onpointerdown=null);};const finish=(choice,method)=>{if(done)return;done=true;const rt=Math.round(performance.now()-t0);cleanup();ABANDON=null;resolve({choice,method,rt});};const onKey=e=>{if(e.repeat)return;const i=CW.findIndex(c=>c.key===e.key.toUpperCase());if(i>=0){e.preventDefault();finish(i,'keyboard');}};document.addEventListener('keydown',onKey);document.querySelectorAll('.colorPad').forEach(b=>b.onpointerdown=e=>{e.preventDefault();finish(+b.dataset.color,'pointer');});const timer=setTimeout(()=>finish(null,'timeout'),windowMs);ABANDON=()=>{if(done)return;done=true;cleanup();reject(new Error('abandon'));};});}
+async function stroopTrial(item,n,total,windowMs,isiMs,training=false){screen(`<div class="instr">Couleur de l'encre ${training?'— entraînement':`— ${n}/${total}`}</div><div class="stroopMeta">${training?'Réponds avec D F J K ou les carrés':'Réponds avant la disparition du stimulus'}</div><div class="stroopWord" id="sw" style="color:${CW[item.ink].css}">${esc(item.stim)}</div>${responsePads()}<div class="fb" id="fb"></div>`);const onset=performance.now();const res=await waitColorResponse(windowMs);const ok=res.choice===item.ink;if(training)$('fb').textContent=res.choice===null?'Trop lent':(ok?'Juste':'Faux');$('sw').textContent='';const offset=performance.now();await sleep(isiMs);return{...item,n,condition:STROOP_LABEL[item.cond],response:res.choice===null?null:CW[res.choice].name,responseIndex:res.choice,responseMethod:res.method,rt:res.choice===null?null:res.rt,ok,omission:res.choice===null,onsetMs:Math.round(onset),offsetMs:Math.round(offset)};}
+async function stroopPractice(){const base=makeStroopPractice();for(let i=0;i<16;i++)await stroopTrial(base[i],i+1,16,1500,500,true);}
+function trimmedCorrectRTs(trials){const vals=trials.filter(t=>t.ok&&Number.isFinite(t.rt)).map(t=>t.rt);const m=mean(vals),s=sd(vals);return trials.filter(t=>t.ok&&Number.isFinite(t.rt)&&t.rt>=200&&Math.abs(t.rt-m)<=3*s);}
+function stroopMetrics(trials){const trimmed=trimmedCorrectRTs(trials);const byCond={};for(const c of STROOP_CONDS){const all=trials.filter(t=>t.cond===c),good=trimmed.filter(t=>t.cond===c);byCond[c]={n:all.length,rt:mean(good.map(t=>t.rt)),sd:sd(good.map(t=>t.rt)),errors:all.filter(t=>!t.ok).length,errRate:all.length?all.filter(t=>!t.ok).length/all.length:NaN,trimmedN:good.length};}const diff=(a,b)=>byCond[a].rt-byCond[b].rt;return{byCond,wordDiff:diff('wordIncong','baseline'),firstlastDiff:diff('firstlastIncong','baseline'),scrambledDiff:diff('scrambledIncong','baseline'),facilitation:diff('wordCong','baseline'),accuracy:trials.filter(t=>t.ok).length/trials.length,trimmedExcluded:trials.filter(t=>t.ok&&Number.isFinite(t.rt)).length-trimmed.length};}
+async function startStroop(){meta();await wait("Cette épreuve reprend la structure temporelle d'Arsalidou et al.<br><br>Réponds à la <strong>couleur de l'encre</strong>, pas au mot. Utilise de préférence les touches <strong>D F J K</strong> correspondant aux quatre carrés colorés.<br><br>16 essais d'entraînement, puis 140 essais.");await stroopPractice();await wait("Entraînement terminé. La passation commence maintenant.<br><br>Il n'y aura plus de feedback.","Commencer les 140 essais");const plan=makeStroopPlan(),trials=[];for(let i=0;i<plan.length;i++)trials.push(await stroopTrial(plan[i],i+1,plan.length,1350,300,false));const M=stroopMetrics(trials);R.stroop={version:TEST_VERSIONS.stroop,form:currentForm(),language:'fr',protocol:{practiceN:16,practiceStimulusMs:1500,practiceIsiMs:500,n:140,stimulusMs:1350,isiMs:300,conditions:STROOP_CONDS},...M,trials};stage.classList.remove('on');showResults();}
+
+/* ================= 4 · TAPPING ================= */
+async function startTap(){meta();await wait("Frappe le plus <strong>régulièrement</strong> possible, sans t'arrêter, pendant 10 secondes.<br>Trois séries, avec une pause entre chaque.<br>Ce n'est pas une course de vitesse.");const series=[];for(let s=1;s<=3;s++){screen(`<div class="instr">Série ${s} / 3 — prêt ?</div><button id="go">Démarrer</button>`);await attend(r=>{$('go').onclick=r;});screen(`<div class="instr">Série ${s} — frappe régulièrement</div><div id="tapZone">Appuie ici (ou barre d'espace)</div><div class="fb" id="cnt">0</div>`);const taps=[],t0=performance.now();const on=(method)=>{taps.push({t:performance.now()-t0,method});$('cnt').textContent=taps.length;};const key=e=>{if(e.code==='Space'&&!e.repeat){e.preventDefault();on('keyboard');}};$('tapZone').onpointerdown=e=>{e.preventDefault();on('pointer');};document.addEventListener('keydown',key);try{await sleep(10000);}finally{document.removeEventListener('keydown',key);$('tapZone').onpointerdown=null;}const iti=[];for(let i=1;i<taps.length;i++)iti.push(taps[i].t-taps[i-1].t);series.push({serie:s,n:taps.length,itiMoyen:mean(iti),itiSD:sd(iti),cv:mean(iti)?sd(iti)/mean(iti):NaN,rawTimestampsMs:taps.map(x=>Math.round(x.t)),methods:taps.map(x=>x.method),iti:iti.map(Math.round)});screen(`<div class="instr">Série ${s} terminée — ${taps.length} frappes</div><button id="go">Continuer</button>`);await attend(r=>{$('go').onclick=r;});}R.tap={version:TEST_VERSIONS.tap,series,nMoyen:mean(series.map(s=>s.n)),itiMoyen:mean(series.map(s=>s.itiMoyen)),cvMoyen:mean(series.map(s=>s.cv)),deriveMs:series[2].itiMoyen-series[0].itiMoyen};stage.classList.remove('on');showResults();}
+
+
+/* ================= 5 · FINGER TAPPING — VITESSE MAXIMALE ================= */
+async function tapSpeedSeries(hand,serie){
+  screen(`<div class="instr"><strong>${hand.toUpperCase()}</strong> — série ${serie}/5<br>Frappe <strong>le plus vite possible</strong> pendant 10 secondes avec l'index indiqué. Barre d'espace recommandée.</div><button id="go">Démarrer</button>`);await attend(r=>{$('go').onclick=r;});
+  screen(`<div class="instr">${hand} — série ${serie}/5 : vitesse maximale</div><div id="tapZone">Frappe ici (ou barre d'espace)</div><div class="fb" id="cnt">0</div>`);
+  const taps=[],t0=performance.now();const on=(method)=>{taps.push({t:performance.now()-t0,method});$('cnt').textContent=taps.length;};
+  const key=e=>{if(e.code==='Space'&&!e.repeat){e.preventDefault();on('keyboard');}};document.addEventListener('keydown',key);$('tapZone').onpointerdown=e=>{e.preventDefault();on('pointer');};
+  try{await sleep(10000);}finally{document.removeEventListener('keydown',key);$('tapZone').onpointerdown=null;}
+  const iti=[];for(let i=1;i<taps.length;i++)iti.push(taps[i].t-taps[i-1].t);
+  return{hand,serie,n:taps.length,rateHz:taps.length/10,itiMedian:median(iti),itiCV:mean(iti)?sd(iti)/mean(iti):NaN,rawTimestampsMs:taps.map(x=>Math.round(x.t)),methods:taps.map(x=>x.method)};
+}
+async function startTapSpeed(){
+  const m=meta(),dom=m.dominantHand||'droite',non=dom==='droite'?'gauche':'droite';
+  await wait(`Cette épreuve mesure la <strong>vitesse répétitive maximale</strong>, distincte du tapping de régularité.<br><br>5 séries de 10 s avec la main dominante (${dom}), puis 5 avec la main non dominante (${non}).`);
+  const series=[];for(const hand of [dom,non])for(let s=1;s<=5;s++){series.push(await tapSpeedSeries(hand,s));if(!(hand===non&&s===5))await sleep(500);}
+  const summarize=hand=>{const a=series.filter(x=>x.hand===hand);return{hand,meanTaps:mean(a.map(x=>x.n)),medianTaps:median(a.map(x=>x.n)),sdTaps:sd(a.map(x=>x.n)),meanHz:mean(a.map(x=>x.rateHz))};};
+  R.tapSpeed={version:TEST_VERSIONS.tapSpeed,protocol:'5x10s_each_hand',dominantHand:dom,dominant:summarize(dom),nondominant:summarize(non),series};
+  stage.classList.remove('on');showResults();
+}
+
+/* ================= RELEVÉ ================= */
+function showResults(){
+  $('home').style.display='none';$('results').style.display='block';scrollTo(0,0);const m=R.meta.id?R.meta:meta();let h=`<p class="muted mono">${esc(m.id)} · 10 ans · forme ${esc(m.form)} · ${esc(m.dateLocal)}${m.cond?' · '+esc(m.cond):''}</p><p class="muted small">Batterie ${BATTERY_VERSION} · session ${esc(m.sessionId)}</p>`;
+  if(!R.corsi&&!R.digits&&!R.stroop&&!R.tap&&!R.tapSpeed){$('resultBody').innerHTML=h+'<p>Aucune épreuve passée pour l\'instant.</p>';return;}
+
+  if(R.corsi){const c=R.corsi;h+=`<h2>Blocs de Corsi</h2><p>${level('B','référence française proche')}</p><table><tr><th>Mesure</th><th>Valeur</th><th>Fournier & Albaret, 10 ans (n=94)</th></tr><tr><td>Empan direct</td><td class="num">${c.direct}</td><td class="num">5,46 ± 0,80</td></tr><tr><td>Empan inverse</td><td class="num">${c.inverse}</td><td class="num">5,03 ± 1,09</td></tr><tr><td>Écart direct − inverse</td><td class="num">${c.ecart}</td><td class="muted">dérivé, non normé</td></tr></table><p class="muted">Disposition, séquences, rythme et règle d'arrêt alignés sur l'étalonnage français. La réponse tactile remplace toutefois la manipulation de blocs par l'examinateur : l'usage reste une référence externe forte, pas une norme propriétaire.</p>`;}
+
+  if(R.digits){const d=R.digits;h+=`<h2>Empan de chiffres auditif</h2><p>${level('B','modalité auditivo-orale proche')}</p><table><tr><th>Mesure</th><th>Direct</th><th>Inverse</th></tr><tr><td>Empan maximal</td><td class="num">${d.direct}</td><td class="num">${d.inverse}</td></tr><tr><td>Séquences correctes avant arrêt</td><td class="num">${d.totalDirect}</td><td class="num">${d.totalInverse}</td></tr></table><div class="card" style="margin-top:10px"><p><strong>Ahmed et al. (2022), âge 10 ans — contexte développemental</strong></p><table><tr><th>Sens</th><th>Moyenne prédite publiée</th><th>SE de la moyenne</th></tr><tr><td>Direct</td><td class="num">8,90</td><td class="num">0,05</td></tr><tr><td>Inverse</td><td class="num">4,64</td><td class="num">0,04</td></tr></table><p class="muted"><strong>SE ≠ écart-type individuel.</strong> La V4 est désormais auditivo-orale : l'enfant répond oralement et l'adulte transcrit après coup. Les séquences exactes WISC-R et certains détails de scoring propriétaires ne sont toutefois pas reproduits ; aucune transformation en z individuel n'est appliquée.</p></div><p class="muted">Voix : ${d.voice?esc(d.voice.name)+' · '+esc(d.voice.lang):'non enregistrée'} · présentation ${esc(d.presentationRate)}. Les temps de saisie de l'adulte ne sont pas interprétés.</p>`;}
+  if(R.stroop){const s=R.stroop;h+=`<h2>Interférence couleur-mot</h2><p>${level('B','référence Arsalidou 9–10 ans')}</p>`;if(s.accuracy<.60)h+=`<div class="warn"><p><strong>Validité prudente :</strong> exactitude globale ${f(s.accuracy*100,1)} %. L'étude Arsalidou excluait les participants sous 60 % de réponses correctes ; la comparaison externe est donc à considérer comme non interprétable.</p></div>`;h+=`<table><tr><th>Condition</th><th>RT V4</th><th>Erreur V4</th><th>Arsalidou 9–10 ans</th><th>z RT descriptif</th></tr>`;for(const c of STROOP_CONDS){const x=s.byCond[c],ref=ARS10[c],z=Number.isFinite(x.rt)?(x.rt-ref.rt)/ref.sd:NaN;h+=`<tr><td>${STROOP_LABEL[c]}</td><td class="num">${f(x.rt)} ms</td><td class="num">${f(x.errRate*100,1)} %</td><td class="muted">${ref.rt} ± ${ref.sd} ms · err ${f(ref.err*100,0)} %</td><td class="num">${f(z,2)}</td></tr>`;}h+=`</table><h3>Scores différentiels</h3><table><tr><th>Score</th><th>Cette passation</th><th>Référence 9–10 ans</th></tr><tr><td>Interférence mot = incongruent − baseline</td><td class="num">${f(s.wordDiff)} ms</td><td class="muted">59 ± 117 ms</td></tr><tr><td>1re/dernière = incongruent − baseline</td><td class="num">${f(s.firstlastDiff)} ms</td><td class="muted">50 ± 85 ms</td></tr><tr><td>Mélangé = incongruent − baseline</td><td class="num">${f(s.scrambledDiff)} ms</td><td class="muted">45 ± 59 ms</td></tr><tr><td>Facilitation mot = congruent − baseline</td><td class="num">${f(s.facilitation)} ms</td><td class="muted">−21 ± 63 ms</td></tr></table><p class="muted">Les RT sont calculés sur les réponses correctes après exclusion des essais &lt;200 ms et &gt;3 écarts-types du RT individuel, comme dans l'article. ${s.trimmedExcluded} essai(s) correct(s) ont été exclus du calcul. Les z affichés sont <strong>descriptifs</strong> : mots français, navigateur et modalités de réponse diffèrent du matériel original.</p>`;}
+
+  if(R.tap){const t=R.tap;h+=`<h2>Tapping — régularité motrice</h2><p>${level('C','indicateur fonctionnel')}</p><table><tr><th>Série</th><th>Frappes</th><th>Intervalle moyen</th><th>Écart-type</th><th>CV</th></tr>`;t.series.forEach(x=>{h+=`<tr><td>${x.serie}</td><td class="num">${x.n}</td><td class="num">${f(x.itiMoyen)} ms</td><td class="num">${f(x.itiSD)} ms</td><td class="num">${f(x.cv,3)}</td></tr>`;});h+=`<tr><td><strong>Moyenne</strong></td><td class="num">${f(t.nMoyen,1)}</td><td class="num">${f(t.itiMoyen)} ms</td><td>—</td><td class="num">${f(t.cvMoyen,3)}</td></tr></table><p class="muted">Dérive série 1 → 3 : ${f(t.deriveMs)} ms. Aucun seuil « régulier/irrégulier » n'est appliqué. Les timestamps bruts et la méthode de frappe sont conservés ; l'auto-répétition clavier est ignorée.</p>`;}
+
+  if(R.tapSpeed){const t=R.tapSpeed;h+=`<h2>Finger tapping — vitesse maximale</h2><p>${level('C','mesure numérique')} ${level('B','contexte pédiatrique')}</p><table><tr><th>Main</th><th>Frappes moyennes / 10 s</th><th>SD entre séries</th><th>Hz</th></tr><tr><td>Dominante (${esc(t.dominant.hand)})</td><td class="num">${f(t.dominant.meanTaps,1)}</td><td class="num">${f(t.dominant.sdTaps,1)}</td><td class="num">${f(t.dominant.meanHz,2)}</td></tr><tr><td>Non dominante (${esc(t.nondominant.hand)})</td><td class="num">${f(t.nondominant.meanTaps,1)}</td><td class="num">${f(t.nondominant.sdTaps,1)}</td><td class="num">${f(t.nondominant.meanHz,2)}</td></tr></table><p class="muted">Wilcox & Nordstokke (2022) documentent le développement du Finger Tapping chez 476 enfants de 6–14 ans. L'appareil numérique utilisé ici diffère du matériel standard : contexte développemental uniquement.</p>`;}
+
+  h+=`<h2>Transmission</h2><p class="muted">Le JSON conserve les données essai par essai, la version des protocoles et un <code>analysisProfile</code> standardisé pour le tableau de bord transversal. Le CSV résumé sert au suivi longitudinal ; le CSV détail permet de contrôler la structure des réponses.</p><h3>Résumé</h3><textarea id="csvOut" readonly>${esc(csvOut(m))}</textarea><h3>Détail par essai</h3><textarea id="csvDet" readonly>${esc(csvDet(m))}</textarea><p class="muted">Séparateur point-virgule ; champs contenant un séparateur ou des guillemets correctement échappés.</p>`;$('resultBody').innerHTML=h;
+}
+
+
+function metricRecord(id,domain,label,value,unit,evidence,source,note='',reference=null,direction='neutral',paradigm=''){
+  return {id,domain,label,value:(value===null||value===undefined||value==='')?null:(Number.isFinite(+value)?+value:null),unit,evidence,source,note,reference,direction,paradigm:paradigm||id.split('.')[0]};
+}
+function buildAnalysisProfile(){
+  const out=[];
+  if(R.corsi){const c=R.corsi,src='Fournier & Albaret, 2013';
+    out.push(metricRecord('corsi.forward','memoire_travail_visuospatiale','Corsi — empan direct',c.direct,'','B',src,'Étalonnage français à 10 ans ; disposition, séquences, rythme et règle d’arrêt alignés, réponse tactile adaptée.',{mean:5.46,sd:.80,age:'10 ans',n:94,comparable:true},'higher_better','corsi'));
+    out.push(metricRecord('corsi.backward','memoire_travail_visuospatiale','Corsi — empan inverse',c.inverse,'','B',src,'Étalonnage français à 10 ans ; adaptation tactile.',{mean:5.03,sd:1.09,age:'10 ans',n:94,comparable:true},'higher_better','corsi'));
+    out.push(metricRecord('corsi.manip_cost','memoire_travail_visuospatiale','Corsi — écart direct − inverse',c.ecart,'','C',src,'Contraste intra-individuel ; aucun seuil clinique.',null,'neutral','corsi'));
+  }
+  if(R.digits){const d=R.digits,src='Ahmed et al., 2022';
+    out.push(metricRecord('digits.forward_total','memoire_travail_verbale','Chiffres — séquences correctes direct',d.totalDirect,'','B',src,'Moyenne PSID à 10 ans = 8,90 (SE 0,05), modalité désormais auditive/orale ; items et certains détails de scoring/règle d’arrêt restent différents : pas de z-score.',{mean:8.90,sd:null,se:0.05,age:'10 ans',comparable:false},'higher_better','digit_span_audio'));
+    out.push(metricRecord('digits.backward_total','memoire_travail_verbale','Chiffres — séquences correctes inverse',d.totalInverse,'','B',src,'Moyenne PSID à 10 ans = 4,64 (SE 0,04), modalité désormais auditive/orale ; items et certains détails de scoring/règle d’arrêt restent différents : pas de z-score.',{mean:4.64,sd:null,se:0.04,age:'10 ans',comparable:false},'higher_better','digit_span_audio'));
+    out.push(metricRecord('digits.forward_span','memoire_travail_verbale','Chiffres — empan maximal direct',d.direct,'','C',src,'Longueur maximale auditivo-orale ; ne pas confondre avec la moyenne PSID 8,90.',null,'higher_better','digit_span_audio'));
+    out.push(metricRecord('digits.backward_span','memoire_travail_verbale','Chiffres — empan maximal inverse',d.inverse,'','C',src,'Longueur maximale auditivo-orale.',null,'higher_better','digit_span_audio'));
+    out.push(metricRecord('digits.manip_cost','memoire_travail_verbale','Chiffres — écart direct − inverse',d.ecart,'','C',src,'Coût de manipulation dérivé ; aucun seuil publié appliqué.',null,'neutral','digit_span_audio'));
+  }
+  if(R.stroop){const s=R.stroop,src='Arsalidou et al., 2013';
+    const add=(id,label,val,unit,ref,dir)=>out.push(metricRecord(id,'inhibition_cognitive',label,val,unit,'B',src,'Référence 9–10 ans informatisée ; mots français, navigateur et dispositif de réponse différents.',{mean:ref.m??ref.rt,sd:ref.sd,age:'9–10 ans',comparable:true},dir));
+    add('stroop.baseline_rt','Stroop — RT baseline',s.byCond.baseline.rt,'ms',ARS10.baseline,'lower_better');
+    add('stroop.incongruent_rt','Stroop — RT incongruent',s.byCond.wordIncong.rt,'ms',ARS10.wordIncong,'lower_better');
+    add('stroop.word_interference','Stroop — interférence mot',s.wordDiff,'ms',ARS10.wordDiff,'lower_better');
+    out.push(metricRecord('stroop.relative_interference','inhibition_cognitive','Stroop — interférence relative',s.byCond.baseline.rt?100*s.wordDiff/s.byCond.baseline.rt:NaN,'%','C','Scarpina & Tagini, 2017 ; van Mourik et al., 2005','Contraste relatif à la vitesse de base ; utile pour distinguer ralentissement général et coût sélectif, sans norme directe.',null,'lower_better','stroop'));
+    add('stroop.facilitation','Stroop — facilitation mot',s.facilitation,'ms',ARS10.facilitation,'neutral');
+    out.push(metricRecord('stroop.incongruent_error','inhibition_cognitive','Stroop — erreurs incongruentes',s.byCond.wordIncong.errRate*100,'%','B',src,'Proportion d’erreurs ; comparaison descriptive seulement.',{mean:ARS10.wordIncong.err*100,sd:ARS10.wordIncong.errSd*100,age:'9–10 ans',comparable:true},'lower_better'));
+  }
+  if(R.tap){const t=R.tap,src='Largo et al., 2001 ; Kakebeeke et al., 2018';
+    out.push(metricRecord('tapping.iti','regulation_sensorimotrice','Tapping — intervalle inter-tap moyen',t.itiMoyen,'ms','C',src,'Le protocole numérique régulier diffère du ZNA ; suivi intra-individuel.',null,'neutral','tapping_regularity'));
+    out.push(metricRecord('tapping.cv','regulation_sensorimotrice','Tapping — CV inter-tap',t.cvMoyen,'','C',src,'Régularité temporelle dérivée ; aucun seuil pédiatrique direct.',null,'lower_better','tapping_regularity'));
+    out.push(metricRecord('tapping.drift','regulation_sensorimotrice','Tapping — dérive série 1 → 3',t.deriveMs,'ms','C',src,'Dynamique intra-individuelle ; test-retest des mesures motrices isolées modeste.',null,'neutral','tapping_regularity'));
+  }
+  if(R.tapSpeed){const t=R.tapSpeed,src='Wilcox & Nordstokke, 2022';
+    out.push(metricRecord('tapping_speed.dominant','regulation_sensorimotrice','Finger tapping — dominante',t.dominant.meanTaps,'frappes/10s','C',src,'Paradigme de vitesse maximale ; appareil numérique différent du matériel normatif.',null,'higher_better','finger_tapping_speed'));
+    out.push(metricRecord('tapping_speed.nondominant','regulation_sensorimotrice','Finger tapping — non dominante',t.nondominant.meanTaps,'frappes/10s','C',src,'Contexte développemental pédiatrique, sans norme numérique directe.',null,'higher_better','finger_tapping_speed'));
+    out.push(metricRecord('tapping_speed.asymmetry','regulation_sensorimotrice','Finger tapping — asymétrie D−ND',t.dominant.meanTaps-t.nondominant.meanTaps,'frappes/10s','C',src,'Contraste intra-individuel.',null,'neutral','finger_tapping_speed'));
+  }
+  return out;
+}
+function csvCell(v){const s=String(v??'');return /[;"\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}
+function csvLine(arr){return arr.map(csvCell).join(';');}
+function csvOut(m){const c=R.corsi,d=R.digits,s=R.stroop,t=R.tap;const head=['id','session_id','battery_version','date_utc','timezone','age','contexte','forme','main_dominante','digit_modalite','corsi_direct','corsi_inverse','corsi_ecart','digits_direct','digits_inverse','digits_total_direct','digits_total_inverse','stroop_accuracy_pct','stroop_word_diff_ms','stroop_facilitation_ms','tap_n_moyen','tap_iti_moyen','tap_cv','tap_derive_ms','tap_speed_dom','tap_speed_nondom'];const row=[m.id,m.sessionId,m.batteryVersion,m.dateUTC,m.timezone,m.age,m.cond,m.form,m.dominantHand,d?.modality||'',c?.direct,c?.inverse,c?.ecart,d?.direct,d?.inverse,d?.totalDirect,d?.totalInverse,s?fr(s.accuracy*100):'',s?fr(s.wordDiff):'',s?fr(s.facilitation):'',t?fr(t.nMoyen):'',t?fr(t.itiMoyen):'',t?fr(t.cvMoyen):'',t?fr(t.deriveMs):'',R.tapSpeed?fr(R.tapSpeed.dominant.meanTaps):'',R.tapSpeed?fr(R.tapSpeed.nondominant.meanTaps):''];return csvLine(head)+'\n'+csvLine(row);}
+function csvDet(m){const L=[csvLine(['id','session_id','date_utc','epreuve','essai','condition','longueur','stimulus','reponse','cible','rt_ms','resultat','details'])];if(R.corsi)R.corsi.trials.forEach((x,i)=>L.push(csvLine([m.id,m.sessionId,m.dateUTC,'corsi',i+1,x.sens,x.len,JSON.stringify(x.stimulusSequence),JSON.stringify(x.responseSequence),JSON.stringify(x.targetSequence),x.rt,x.ok?'juste':'faux',JSON.stringify({times:x.responseTimesMs})])));if(R.digits)R.digits.trials.forEach((x,i)=>L.push(csvLine([m.id,m.sessionId,m.dateUTC,'digits',i+1,x.sens,x.len,JSON.stringify(x.stimulusSequence),JSON.stringify(x.responseSequence),JSON.stringify(x.targetSequence),x.rt,x.ok?'juste':'faux',JSON.stringify({responseMode:x.responseMode,audio:x.audioLog})])));if(R.stroop)R.stroop.trials.forEach(x=>L.push(csvLine([m.id,m.sessionId,m.dateUTC,'stroop',x.n,x.cond,'',`${x.stim}/${CW[x.ink].name}`,x.response,CW[x.ink].name,x.rt,x.ok?'juste':'faux',JSON.stringify({method:x.responseMethod,wordIndex:x.wordIdx,omission:x.omission})])));if(R.tapSpeed)R.tapSpeed.series.forEach((x,i)=>L.push(csvLine([m.id,m.sessionId,m.dateUTC,'finger_tapping_speed',i+1,x.hand,'',JSON.stringify(x.rawTimestampsMs),'','', '', '',JSON.stringify({n:x.n,rateHz:x.rateHz,itiMedian:x.itiMedian,itiCV:x.itiCV})])));
+  if(R.tap)R.tap.series.forEach(s=>s.rawTimestampsMs.forEach((v,i)=>L.push(csvLine([m.id,m.sessionId,m.dateUTC,'tapping',i+1,'serie'+s.serie,'','',s.methods[i],'',v,'',JSON.stringify({timestampMs:v})]))));return L.join('\n');}
+function copyText(id,btn){const el=$(id),done=()=>{const o=btn.textContent;btn.textContent='Copié';setTimeout(()=>btn.textContent=o,1200);};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(el.value).then(done).catch(()=>{el.focus();el.select();document.execCommand('copy');done();});}else{el.focus();el.select();document.execCommand('copy');done();}}
+function downloadJSON(){const payload={schemaVersion:'neuro-battery-analysis-2',meta:R.meta,analysisProfile:buildAnalysisProfile(),results:{corsi:R.corsi,digits:R.digits,stroop:R.stroop,tap:R.tap,tapSpeed:R.tapSpeed}};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`batterie_${R.meta.id||'session'}_${R.meta.form||'A'}_${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+</script>
+
+<style id="nb-runner-style">
+  #home,#results{display:none!important}
+  #quit{display:none!important}
+  .nb-runner-intro,.nb-runner-phase,.nb-runner-done{position:fixed;inset:0;z-index:9999;background:#E6E9E4;color:#1C2321;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  .nb-runner-box{width:min(620px,94vw);background:#F2F4F0;border:1px solid #C3C9BE;padding:26px}
+  .nb-runner-box h1{font-family:"Palatino Linotype",Palatino,Georgia,serif;font-size:1.8rem;margin:0 0 10px}
+  .nb-runner-box p{line-height:1.55;color:#5A635C}
+  .nb-runner-box button{margin-top:12px}
+</style>
+
+<script>
+(()=>{
+  const Q=new URLSearchParams(location.search); if(Q.get('runner')!=='1') return;
+  const test=Q.get('test')||'corsi';
+  const meta={pid:Q.get('pid')||'-',cond:Q.get('cond')||'',form:Q.get('form')||'A',hand:Q.get('hand')||'droite',masterSession:Q.get('session')||''};
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const clean=x=>JSON.parse(JSON.stringify(x,(k,v)=>v instanceof Set?[...v]:v));
+  const labels={
+    corsi:['Blocs de Corsi','Mémoire visuospatiale directe puis inverse, protocole rapproché de Fournier & Albaret.'],
+    digits:['Empan de chiffres','Empan auditivo-oral direct puis inverse ; l’adulte transcrit la réponse orale.'],
+    stroop:['Stroop informatisé','Inhibition couleur-mot : vitesse, exactitude et coût d’interférence.'],
+    tapping:['Tapping','Deux phases : régularité du rythme puis vitesse maximale main dominante/non dominante.']
+  };
+  function setMeta(){
+    if(document.getElementById('pid')) $('pid').value=meta.pid;
+    if(document.getElementById('cond')) $('cond').value=meta.cond;
+    if(document.getElementById('form')) $('form').value=['A','B','C'].includes(meta.form)?meta.form:'A';
+    if(document.getElementById('dominantHand')) $('dominantHand').value=meta.hand;
+  }
+  function send(type,payload={}){parent.postMessage({app:'neuro-observation-web',type,test,...payload},'*');}
+  function selectedResult(){
+    if(test==='corsi') return R.corsi;
+    if(test==='digits') return R.digits;
+    if(test==='stroop') return R.stroop;
+    return {regularity:R.tap,speed:R.tapSpeed};
+  }
+  function finish(){
+    const profile=typeof buildAnalysisProfile==='function'?buildAnalysisProfile():[];
+    send('test-complete',{payload:clean({engine:'neuro-v4',masterSession:meta.masterSession,meta:R.meta,result:selectedResult(),analysisProfile:profile})});
+    document.body.insertAdjacentHTML('beforeend','<div class="nb-runner-done"><div class="nb-runner-box"><h1>Épreuve terminée</h1><p>Le résultat a été transmis à la séance.</p></div></div>');
+  }
+  function tappingPhase(){
+    const phase=document.createElement('div');phase.className='nb-runner-phase';phase.innerHTML='<div class="nb-runner-box"><div style="font:12px ui-monospace;color:#6B3F5B;letter-spacing:.12em;text-transform:uppercase">Tapping · phase 1/2 terminée</div><h1>Passer à la vitesse maximale</h1><p>La régularité a été enregistrée. La deuxième phase mesure maintenant la vitesse répétitive maximale avec les deux mains.</p><button id="nbNextTap">Continuer</button></div>';document.body.appendChild(phase);
+    document.getElementById('nbNextTap').onclick=()=>{phase.remove();epreuve(startTapSpeed);};
+  }
+  const originalShow=showResults; showResults=function(){if(test==='tapping'&&R.tap&&!R.tapSpeed){tappingPhase();return;}finish();};
+  const originalHome=goHome; goHome=function(){send('test-cancelled');};
+  setMeta();
+  const [title,desc]=labels[test]||labels.corsi;
+  const intro=document.createElement('div'); intro.className='nb-runner-intro'; intro.innerHTML=`<div class="nb-runner-box"><div style="font:12px ui-monospace;color:#6B3F5B;letter-spacing:.12em;text-transform:uppercase">Épreuve</div><h1>${esc(title)}</h1><p>${esc(desc)}</p><p>Une fois commencée, terminez idéalement l’épreuve dans les mêmes conditions.</p><button id="nbStart">Commencer</button></div>`; document.body.appendChild(intro);
+  document.getElementById('nbStart').onclick=()=>{intro.remove();setMeta();const fn={corsi:startCorsi,digits:startDigits,stroop:startStroop,tapping:startTap}[test]||startCorsi;epreuve(fn);};
+  send('runner-ready');
+})();
+</script>
+</body>
+</html>

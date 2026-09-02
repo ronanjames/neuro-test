@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Carnet d'épreuves — visuomotricité B · ordinateur</title>
+<style>
+:root{
+  --paper:#E6E9E4;--paper2:#F2F4F0;--ink:#1C2321;--soft:#5A635C;
+  --plum:#6B3F5B;--ochre:#B8811F;--moss:#3E6B4F;--rule:#C3C9BE;--stage:#737773;
+  --display:"Palatino Linotype",Palatino,"Iowan Old Style",Georgia,serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --data:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);line-height:1.55}
+.wrap{max-width:940px;margin:0 auto;padding:32px 20px 80px}
+h1,h2,h3{font-family:var(--display);font-weight:600;margin:0;letter-spacing:-.01em}
+h1{font-size:2rem;line-height:1.15}h2{font-size:1.3rem;margin:28px 0 8px}h3{font-size:1.02rem;margin:18px 0 6px}
+p{margin:8px 0}.lede{color:var(--soft);max-width:68ch}
+.eyebrow{font-family:var(--data);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--plum);margin-bottom:6px}
+.card{background:var(--paper2);border:1px solid var(--rule);padding:20px;margin:16px 0}
+.warn{border-left:3px solid var(--ochre);padding-left:14px;margin:18px 0}
+.good{border-left-color:var(--moss)}
+button{font-family:var(--body);font-size:.95rem;background:var(--ink);color:var(--paper2);border:1px solid var(--ink);padding:10px 18px;cursor:pointer}
+button:hover{background:var(--plum);border-color:var(--plum)}
+button.ghost{background:transparent;color:var(--ink);border-color:var(--rule)}
+button.ghost:hover{border-color:var(--ink)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ochre);outline-offset:2px}
+label{display:block;font-size:.85rem;color:var(--soft);margin-bottom:3px}
+input,select{font-family:var(--data);font-size:.9rem;padding:7px 9px;border:1px solid var(--rule);background:#fff;color:var(--ink);width:100%}
+.grid{display:grid;gap:14px}.g3{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
+.muted{color:var(--soft);font-size:.85rem}.mono{font-family:var(--data)}.small{font-size:.78rem}
+.level{font-family:var(--data);font-size:.72rem;border:1px solid var(--rule);padding:2px 7px;color:var(--soft);white-space:nowrap}
+table{border-collapse:collapse;width:100%;font-size:.9rem;margin-top:8px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--rule)}
+th{font-family:var(--data);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--soft);font-weight:500}
+td.num{font-family:var(--data)}
+textarea{width:100%;height:120px;font-family:var(--data);font-size:.78rem;border:1px solid var(--rule);padding:10px;background:#fff}
+#stage{position:fixed;inset:0;background:var(--stage);display:none;align-items:center;justify-content:center;flex-direction:column;z-index:50;user-select:none;padding:18px;overflow:auto}
+#stage.on{display:flex}
+#board{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:1100px}
+#quit{position:fixed;top:10px;right:12px;z-index:60;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.45);color:#fff;font-size:.82rem;padding:8px 14px}
+.instr{color:#fff;text-align:center;max-width:58ch;font-size:1rem}
+.fb{color:#fff;min-height:1.5em;text-align:center}
+#arena{position:relative;background:rgba(0,0,0,.10);border:1px solid #545854;overflow:hidden;cursor:default}
+.tgt{position:absolute;border-radius:50%;background:#F0E3B8;border:2px solid #2a2a2a;cursor:crosshair}
+.tgt.home{background:#9FB8A4}
+canvas{background:rgba(0,0,0,.10);border:1px solid #545854;cursor:crosshair;display:block}
+.altStim{font-family:var(--data);font-size:min(14vh,96px);line-height:1;color:#141414}
+.altBox{padding:22px 38px;border:3px solid #2a2a2a}
+.altBox.lettres{background:#F0DFB4;border-color:#8a6b1e}.altBox.chiffres{background:#B4CCDB;border-color:#2E4E86}
+.legende{color:#f5f5f5;font-size:.82rem;opacity:.9}.keyHint{color:#fff;font-family:var(--data);font-size:.92rem}
+#ask{position:fixed;inset:0;background:rgba(20,22,20,.72);z-index:70;display:none;align-items:center;justify-content:center;padding:24px}
+#ask.on{display:flex}#askBox{background:var(--paper2);border:1px solid var(--rule);padding:22px;max-width:390px;width:100%}
+
+.dotField{position:relative;width:min(78vw,720px);height:240px;background:#dedfdb;border:2px solid #444}
+.fix{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:32px;color:#555}
+.dotStim{position:absolute;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;border:2px solid #333}
+.dotStim.left{left:13%}.dotStim.right{right:13%}.dotStim.solid{background:#777}
+.dotStim.striped{background:repeating-linear-gradient(90deg,#222 0 4px,#eee 4px 8px)}
+.blockLabel{color:#fff;font-family:var(--data);font-size:.8rem;opacity:.88}
+@media(max-width:760px){.wrap{padding:20px 12px 60px}.desktopOnly{display:block}.row>button{flex:1 1 220px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<section id="home">
+  <div class="eyebrow">Carnet d'épreuves · ordinateur · noyau B</div>
+  <h1>Coordination visuomanuelle,<br>pilotage et attention alternée</h1>
+  <p class="lede">Trois épreuves sur ordinateur, restructurées autour de paradigmes publiés suffisamment proches pour classer leur <strong>noyau principal en B</strong>. Le pointage et le pilotage utilisent une souris ; le contrôle exécutif reprend la logique du <em>Dots task</em> de Davidson avec deux touches du clavier. Les métriques supplémentaires propres à cette implémentation restent C ou D.</p>
+
+  <div class="warn good"><p class="muted"><strong>Statut scientifique.</strong> Les trois épreuves principales sont classées <strong>B</strong> : <strong>B · développemental</strong> pour le pointage souris (Lambert &amp; Bard, enfants de 6, 8 et 10 ans) ; <strong>B · méthodologique</strong> pour le pilotage souris selon la Steering Law (Accot &amp; Zhai) ; <strong>B · développemental</strong> pour le Dots task, rapproché de l'adaptation clavier de Wang et al. (2015) et de Davidson et al. (2006). B signifie ici « protocole/construit directement rapproché d'une étude publiée », <strong>pas test clinique normé</strong>. Les extensions de trajectoire, récupération et interactions secondaires restent C/D.</p></div>
+
+  <div class="warn"><p class="muted"><strong>Matériel recommandé.</strong> Ordinateur portable ou fixe, souris externe, navigateur à zoom 100 %. Évitez le trackpad pour les deux épreuves motrices. Pour un suivi longitudinal, gardez autant que possible la même souris, le même ordinateur, le même réglage de vitesse du pointeur et la même forme A/B/C/D.</p></div>
+
+  <div class="card">
+    <h3>Séance</h3>
+    <div class="grid g3" style="margin-top:10px">
+      <div><label for="pid">Identifiant</label><input id="pid" value="L"></div>
+      <div><label for="age">Âge</label><input id="age" type="number" value="10"></div>
+      <div><label for="cond">Contexte</label><input id="cond" placeholder="matin, après l'école…"></div>
+      <div><label for="mouseHand">Main utilisée pour la souris</label><select id="mouseHand"><option value="droite" selected>Droite</option><option value="gauche">Gauche</option></select></div>
+      <div><label for="device">Périphérique</label><select id="device"><option value="souris" selected>Souris externe</option><option value="trackpad">Trackpad — déconseillé</option><option value="autre">Autre</option></select></div>
+      <div><label for="form">Forme de passation</label><select id="form"><option>A</option><option>B</option><option>C</option><option>D</option></select></div>
+    </div>
+    <p class="muted" id="deviceInfo" style="margin-top:10px"></p>
+  </div>
+
+  <div class="card">
+    <h3>Contrôle exécutif — règle de passation</h3>
+    <p class="muted">Pour rester proche de Davidson, <strong>aucun feedback n'est donné pendant les blocs mesurés</strong>. Un feedback peut être donné pendant les essais d'entraînement. L'entraînement est répété une fois si l'exactitude est inférieure à 75 %.</p>
+  </div>
+
+  <div class="row">
+    <button onclick="epreuve(startPointing)">1 · Pointage souris</button>
+    <button onclick="epreuve(startTracing)">2 · Traçage souris</button>
+    <button onclick="epreuve(startAlt)">3 · Attention alternée</button>
+    <button class="ghost" onclick="showResults()">Voir le relevé</button>
+  </div>
+
+  <h2>1 · Pointage — Fitts à la souris <span class="level">B · développemental</span></h2>
+  <p>Le curseur part d'un point de départ fixe puis doit atteindre une cible de taille et de distance variables. Lambert &amp; Bard (2005) ont utilisé un ordinateur portable, une souris standard et trois tailles de cible chez des enfants de 6, 8 et 10 ans. Le noyau interprété est la relation <strong>indice de difficulté → temps de mouvement</strong>. Les mesures de trajectoire ajoutées par cette batterie restent C.</p>
+
+  <h2>2 · Pilotage — Steering Law à la souris <span class="level">B · méthodologique</span></h2>
+  <p>Le noyau B utilise des <strong>tunnels droits de largeur constante</strong>, forme canonique de la Steering Law. Les quatre largeurs utiles sont désormais concentrées dans la zone où la contrainte est perceptible à la souris : <strong>28 / 18 / 12 / 7 px CSS</strong>. Chaque largeur est répétée <strong>3 fois</strong> (12 passages) et la régression est calculée sur la <strong>médiane des 3 passages</strong>. La consigne est explicite : aller <strong>aussi vite que possible sans sortir</strong>. La pente de la relation <strong>temps ~ A/W</strong> et son R² sont B méthodologiques lorsque le contrôle qualité de cohérence est validé ; sorties, temps hors tunnel et récupération restent des extensions C.</p>
+
+  <h2>3 · Dots — inhibition et bascule <span class="level">B · développemental</span></h2>
+  <p>Adaptation rapprochée de Wang et al. (2015), elle-même fondée sur Davidson : <strong>20 Congruent → 20 Incongruent → 61 Mixed</strong>. Le bloc Mixed étendu reprend une adaptation publiée au clavier F/J : fixation 500 ms, blanc 500 ms, cible jusqu'à 750 ms (à partir de 7 ans), puis blanc 500 ms. La cible a un diamètre nominal de 38 px (~1 cm CSS à zoom 100 %). Les 61 essais laissent 60 transitions analysables, équilibrées entre switch et stay. Les moyennes de Davidson à 10 ans restent affichées comme <strong>repères historiques descriptifs</strong> pour les blocs 20/20/20 ; elles ne sont pas utilisées comme norme directe du Mixed 61 essais.</p>
+</section>
+
+<section id="results" style="display:none">
+  <div class="eyebrow">Relevé ordinateur</div><h1>Relevé de séance</h1>
+  <div id="resultBody"></div>
+  <div class="row">
+    <button class="ghost" onclick="goHome()">Retour</button>
+    <button class="ghost" onclick="copyText('csvOut',this)">Copier le résumé CSV</button>
+    <button class="ghost" onclick="copyText('csvDet',this)">Copier le détail CSV</button>
+    <button class="ghost" onclick="downloadJSON(this)">Exporter JSON complet</button><button class="ghost" onclick="copyJSON(this)">Copier le JSON</button><span class="muted" id="exportMsg"></span>
+    <button class="ghost" onclick="window.print()">Imprimer / PDF</button>
+  </div>
+</section>
+</div>
+
+<div id="ask"><div id="askBox"><p id="askText"></p><div class="row"><button id="askYes">Arrêter</button><button class="ghost" id="askNo">Continuer</button></div></div></div>
+<div id="stage"><button id="quit" onclick="abandon()">Arrêter</button><div id="board"></div></div>
+
+<script>
+'use strict';
+const $=id=>document.getElementById(id),stage=$('stage'),board=$('board');
+const BATTERY_VERSION='visuomotricite-desktop-B-6.3';
+const TEST_VERSION={point:'fitts-mouse-lambert-B-6.2',trace:'steering-mouse-canonical-B-6.3',alt:'dots-wang-davidson-keyboard-B-6.2'};
+const R={point:null,trace:null,alt:null,meta:{}};
+const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:NaN;
+const sd=a=>{if(a.length<2)return NaN;const m=mean(a);return Math.sqrt(a.reduce((s,x)=>s+(x-m)**2,0)/(a.length-1));};
+const median=a=>{if(!a.length)return NaN;const b=[...a].sort((x,y)=>x-y),h=b.length>>1;return b.length%2?b[h]:(b[h-1]+b[h])/2;};
+const f=(v,d=0)=>(v===null||v===undefined||!Number.isFinite(+v))?'—':(+v).toFixed(d);
+const fr=v=>(v===null||v===undefined||!Number.isFinite(+v))?'':String(Math.round(+v*100)/100).replace('.',',');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function hashSeed(s){let h=2166136261>>>0;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function rngFrom(seedText){let a=hashSeed(seedText)||1;return()=>{a|=0;a=(a+0x6D2B79F5)|0;let t=Math.imul(a^(a>>>15),1|a);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296;};}
+function shuffleSeeded(a,rng){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function sessionId(){return 'desk-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);}
+function wilson(k,n,z=1.96){if(!n)return{lo:NaN,hi:NaN};const p=k/n,den=1+z*z/n,ctr=(p+z*z/(2*n))/den,half=z*Math.sqrt(p*(1-p)/n+z*z/(4*n*n))/den;return{lo:100*Math.max(0,ctr-half),hi:100*Math.min(1,ctr+half)};}
+function csvEscape(v){const s=v===null||v===undefined?'':String(v);return /[;"\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}
+const csvLine=a=>a.map(csvEscape).join(';');
+
+let ABANDON=null,ABANDONNE=false;
+function screenStage(html){board.innerHTML=html;stage.classList.add('on');}
+function attend(installer){return new Promise((res,rej)=>{if(ABANDONNE){rej(new Error('abandon'));return;}ABANDON=()=>rej(new Error('abandon'));installer(res);});}
+function sleep(ms){return new Promise((res,rej)=>{if(ABANDONNE){rej(new Error('abandon'));return;}const t=setTimeout(res,ms);ABANDON=()=>{clearTimeout(t);rej(new Error('abandon'));};});}
+function demander(texte){return new Promise(res=>{$('askText').textContent=texte;$('ask').classList.add('on');$('askYes').style.display='';$('askNo').textContent='Continuer';$('askYes').onclick=()=>{$('ask').classList.remove('on');res(true);};$('askNo').onclick=()=>{$('ask').classList.remove('on');res(false);};});}
+async function abandon(){if(!await demander("Arrêter l'épreuve en cours ? Les essais de cette épreuve seront perdus ; les épreuves terminées restent conservées."))return;ABANDONNE=true;const stop=ABANDON;ABANDON=null;stage.classList.remove('on');cleanupListeners();if(stop)stop();else goHome();}
+function epreuve(fn){ABANDONNE=false;ABANDON=null;return fn().catch(err=>{if(err&&err.message==='abandon')goHome();else throw err;}).finally(()=>{ABANDON=null;ABANDONNE=false;cleanupListeners();});}
+function cleanupListeners(){document.onpointermove=null;document.onkeydown=null;document.onkeyup=null;}
+function wait(t,b='Commencer'){return attend(r=>{screenStage(`<div class="instr">${t}</div><button id="go">${b}</button>`);$('go').onclick=r;});}
+function goHome(){stage.classList.remove('on');$('home').style.display='block';$('results').style.display='none';scrollTo(0,0);}
+function meta(){const old=R.meta&&R.meta.sessionId;R.meta={id:$('pid').value||'-',age:+$('age').value||10,cond:$('cond').value||'',mouseHand:$('mouseHand').value,device:$('device').value,form:$('form').value,feedback:'practice_only_fixed',batteryVersion:BATTERY_VERSION,testVersion:TEST_VERSION,sessionId:old||sessionId(),date:new Date().toISOString(),viewport:innerWidth+'x'+innerHeight,screen:screen.width+'x'+screen.height,dpr:devicePixelRatio||1,visualScale:(window.visualViewport&&window.visualViewport.scale)||1,userAgent:navigator.userAgent,timezone:Intl.DateTimeFormat().resolvedOptions().timeZone||''};return R.meta;}
+function desktopInfo(){$('deviceInfo').textContent=`Fenêtre ${innerWidth}×${innerHeight} px CSS · écran ${screen.width}×${screen.height} · DPR ${devicePixelRatio||1} · pointeur ${matchMedia('(pointer:fine)').matches?'fin détecté':'fin non détecté'}.`;}
+function deviceWarn(){if($('device').value==='trackpad')return "Le trackpad modifie fortement le geste. La passation reste possible mais doit être analysée séparément des séances à la souris.";if(!matchMedia('(pointer:fine)').matches)return "Aucun pointeur fin n'est détecté. Pour les épreuves motrices, utilisez une souris sur ordinateur.";return '';}
+
+/* ---------- POINTAGE SOURIS ---------- */
+const POINT_BASE={w:760,h:500,widths:[28,46,72],distances:[150,250,350]};
+function fitScale(baseW,baseH,reserve=150){return Math.min(1,(innerWidth-60)/baseW,(innerHeight-reserve)/baseH);}
+async function startPointing(){
+  const m=meta(),warn=deviceWarn();if(warn)await wait(`<strong>Attention matériel :</strong> ${warn}<br><br>Vous pouvez continuer si c'est volontaire.`,'Continuer');
+  await wait("Place la souris confortablement. Clique sur le rond vert. Quand la cible jaune apparaît, déplace le curseur et clique dessus <strong>le plus vite possible sans sacrifier la précision</strong>.<br><br>Ne repositionne pas la souris entre les essais.");
+  const availableScale=fitScale(POINT_BASE.w,POINT_BASE.h,145);
+  if(availableScale<0.98){
+    await wait(`<strong>Fenêtre trop petite pour le protocole Fitts de référence.</strong><br><br>La géométrie ne sera pas réduite en V6.3. Agrandissez la fenêtre, passez le zoom du navigateur à 100 % et relancez l'épreuve.<br><br>Espace disponible : ${f(availableScale*100,0)} % de la géométrie requise.`,'Retour');
+    stage.classList.remove('on');return;
+  }
+  const scale=1,W=POINT_BASE.w,H=POINT_BASE.h;
+  const rng=rngFrom('POINT-MOUSE-'+m.form+'-'+TEST_VERSION.point),combos=[];
+  for(const w0 of POINT_BASE.widths)for(const d0 of POINT_BASE.distances)combos.push({w0,d0});
+  const base=[];for(let rep=1;rep<=3;rep++)for(const c of combos)base.push({...c,rep});
+  const plan=shuffleSeeded(base,rng),trials=[];
+  const hx=W/2,hy=H-50*scale,angleMin=-145*Math.PI/180,angleMax=-35*Math.PI/180;
+  for(let i=0;i<plan.length;i++){
+    const {w0,d0,rep}=plan[i],w=w0*scale,d=d0*scale,ang=angleMin+rng()*(angleMax-angleMin);
+    let tx=hx+Math.cos(ang)*d,ty=hy+Math.sin(ang)*d;
+    tx=Math.max(w/2+4,Math.min(W-w/2-4,tx));ty=Math.max(w/2+4,Math.min(H-w/2-4,ty));
+    const realD=Math.hypot(tx-hx,ty-hy),ID=Math.log2(realD/w+1);
+    screenStage(`<div class="instr">${i+1} / ${plan.length}</div><div id="arena" style="width:${W}px;height:${H}px"><div class="tgt home" id="homeTarget" style="width:${34*scale}px;height:${34*scale}px;left:${hx-17*scale}px;top:${hy-17*scale}px"></div></div><div class="fb" id="fb"></div>`);
+    await attend(r=>{$('homeTarget').onclick=e=>{e.preventDefault();r();};});
+    await sleep(120);
+    const ar=$('arena');ar.innerHTML=`<div class="tgt" id="target" style="width:${w}px;height:${w}px;left:${tx-w/2}px;top:${ty-w/2}px"></div>`;
+    const onset=performance.now(),path=[];let last={x:hx,y:hy},pathLen=0;
+    const rect=()=>ar.getBoundingClientRect();
+    document.onpointermove=e=>{if(e.pointerType&&e.pointerType!=='mouse')return;const r=rect(),x=e.clientX-r.left,y=e.clientY-r.top,t=performance.now()-onset;if(last)pathLen+=Math.hypot(x-last.x,y-last.y);last={x,y};path.push({t:Math.round(t),x:Math.round(x*10)/10,y:Math.round(y*10)/10});};
+    const ev=await attend(r=>{ar.onclick=e=>{if(performance.now()-onset<90){$('fb').textContent='Attends la cible';return;}r(e);};});
+    const rt=Math.round(performance.now()-onset),r=ar.getBoundingClientRect(),x=ev.clientX-r.left,y=ev.clientY-r.top,err=Math.hypot(x-tx,y-ty),hit=err<=w/2;
+    document.onpointermove=null;ar.onclick=null;
+    const direct=Math.hypot(tx-hx,ty-hy),eff=pathLen>0?Math.min(1,direct/pathLen):NaN;
+    trials.push({n:i+1,form:m.form,rep,wRef:w0,dRef:d0,scale,wPx:w,dPx:realD,ID,rt,hit,endpointErrorPx:err,overshootPx:Math.hypot(x-hx,y-hy)-realD,pathLengthPx:pathLen,pathEfficiency:eff,targetX:tx,targetY:ty,responseX:x,responseY:y,pointerType:ev.pointerType||'mouse',path});
+    await sleep(220);
+  }
+  const good=trials.filter(t=>t.hit),X=good.map(t=>t.ID),Y=good.map(t=>t.rt),mx=mean(X),my=mean(Y);let num=0,den=0;X.forEach((x,i)=>{num+=(x-mx)*(Y[i]-my);den+=(x-mx)**2;});const b=den?num/den:NaN,a=my-b*mx,ssTot=Y.reduce((s,y)=>s+(y-my)**2,0),ssRes=X.reduce((s,x,i)=>s+(Y[i]-(a+b*x))**2,0),r2=ssTot?1-ssRes/ssTot:NaN;
+  const bySize=POINT_BASE.widths.map(w0=>{const g=trials.filter(t=>t.wRef===w0),gg=g.filter(t=>t.hit);return{wRef:w0,pct:100*gg.length/g.length,rt:mean(gg.map(t=>t.rt)),error:mean(g.map(t=>t.endpointErrorPx)),efficiency:mean(g.map(t=>t.pathEfficiency).filter(Number.isFinite))};});
+  const small=bySize[0],large=bySize.at(-1);
+  R.point={version:TEST_VERSION.point,form:m.form,input:m.device,scale,n:trials.length,hitRate:100*good.length/trials.length,rtMean:mean(good.map(t=>t.rt)),rtSD:sd(good.map(t=>t.rt)),endpointErrorMean:mean(trials.map(t=>t.endpointErrorPx)),overshootMean:mean(trials.map(t=>t.overshootPx)),pathEfficiencyMean:mean(trials.map(t=>t.pathEfficiency).filter(Number.isFinite)),slope:b,intercept:a,r2,ipRegression:b?1000/b:NaN,bySize,difficultyContrast:{deltaRT:small.rt-large.rt,deltaMT:small.rt-large.rt,deltaHitPct:small.pct-large.pct,deltaEndpointError:small.error-large.error},trials};
+  Object.assign(R.point,{tauxReussite:R.point.hitRate,mtMoyen:R.point.rtMean,mtSD:R.point.rtSD,ecartMoyen:R.point.endpointErrorMean,biaisDepassement:R.point.overshootMean,pente:R.point.slope,ordonnee:R.point.intercept});
+  stage.classList.remove('on');showResults();
+}
+
+/* ---------- PILOTAGE SOURIS — STEERING LAW ---------- */
+const TRACE_BASE={w:760,h:260,margin:70,widths:[28,18,12,7]};
+const TRACE_ORDERS={A:[28,18,12,7],B:[7,12,18,28],C:[12,28,7,18],D:[18,7,28,12]};
+function pathPoints(W,H,scale){const m=TRACE_BASE.margin*scale,y=H/2,pts=[],n=360;for(let i=0;i<=n;i++){const t=i/n;pts.push([m+t*(W-2*m),y]);}return pts;}
+function distToPath(x,y,pts){let best=1e9;for(let i=1;i<pts.length;i++){const[x1,y1]=pts[i-1],[x2,y2]=pts[i],dx=x2-x1,dy=y2-y1,L=dx*dx+dy*dy;let t=L?((x-x1)*dx+(y-y1)*dy)/L:0;t=Math.max(0,Math.min(1,t));best=Math.min(best,Math.hypot(x-(x1+t*dx),y-(y1+t*dy)));}return best;}
+async function traceRun(widthRef,label,total,form,scale,rep){
+  const W=Math.round(TRACE_BASE.w*scale),H=Math.round(TRACE_BASE.h*scale),corridor=widthRef*scale,threshold=corridor/2,pts=pathPoints(W,H,scale);
+  screenStage(`<div class="instr">Tunnel ${label} / ${total} — clique sur le point vert puis guide le curseur jusqu'au point rouge. <strong>Va aussi vite que tu peux sans sortir du tunnel.</strong> Ne maintiens pas le bouton.</div><canvas id="cv" width="${W}" height="${H}" style="width:${W}px;height:${H}px"></canvas><div class="fb" id="fb">Clique sur le point vert</div>`);
+  const cv=$('cv'),ctx=cv.getContext('2d');
+  const draw=()=>{ctx.clearRect(0,0,W,H);ctx.strokeStyle='#4a4a4a';ctx.lineWidth=corridor+4;ctx.lineCap='round';ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.stroke();ctx.strokeStyle='#989b98';ctx.lineWidth=corridor;ctx.stroke();ctx.strokeStyle='#5d615d';ctx.lineWidth=1;ctx.setLineDash([5,5]);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#9FB8A4';ctx.beginPath();ctx.arc(pts[0][0],pts[0][1],12*scale,0,7);ctx.fill();ctx.fillStyle='#B4342E';ctx.beginPath();ctx.arc(pts.at(-1)[0],pts.at(-1)[1],10*scale,0,7);ctx.fill();};draw();
+  const start=pts[0],end=pts.at(-1);let armed=false,t0=0,samples=[],last=null,pathLen=0;
+  await attend(resolve=>{cv.onclick=e=>{if(armed)return;const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;if(Math.hypot(x-start[0],y-start[1])>20*scale){$('fb').textContent='Clique d’abord sur le point vert';return;}armed=true;t0=performance.now();last={x,y};$('fb').textContent='Le plus vite possible, sans sortir';document.onpointermove=ev=>{if(ev.pointerType&&ev.pointerType!=='mouse')return;const rr=cv.getBoundingClientRect(),xx=ev.clientX-rr.left,yy=ev.clientY-rr.top,t=performance.now()-t0;if(last)pathLen+=Math.hypot(xx-last.x,yy-last.y);last={x:xx,y:yy};samples.push({t,x:xx,y:yy,d:distToPath(xx,yy,pts)});if(Math.hypot(xx-end[0],yy-end[1])<15*scale){document.onpointermove=null;cv.onclick=null;resolve();}};};});
+  if(!samples.length)return{label,widthRef,fin:'sans_echantillon',samples:[]};
+  const dur=samples.at(-1).t,dev=samples.map(s=>s.d),A=pts.at(-1)[0]-pts[0][0],sorted=[...dev].sort((a,b)=>a-b),q=p=>sorted[Math.min(sorted.length-1,Math.floor(p*(sorted.length-1)))];
+  let outsideMs=0,totalDt=0,weighted=0;for(let i=1;i<samples.length;i++){const dt=samples[i].t-samples[i-1].t;totalDt+=dt;weighted+=samples[i].d*dt;if(samples[i].d>threshold)outsideMs+=dt;}
+  const episodes=[];let epStart=null;for(let i=0;i<samples.length;i++){const out=samples[i].d>threshold;if(out&&epStart===null)epStart=samples[i].t;if(!out&&epStart!==null){episodes.push({duration:samples[i].t-epStart,recovered:true});epStart=null;}}if(epStart!==null)episodes.push({duration:samples.at(-1).t-epStart,recovered:false});
+  const recovered=episodes.filter(e=>e.recovered).map(e=>e.duration),id=A/corridor,duration=Math.round(dur),meanError=totalDt?weighted/totalDt:mean(dev),p90Error=q(.9),outsideTimePct=totalDt?100*outsideMs/totalDt:NaN,nExits=episodes.length,recoveryMedianMs=median(recovered),samplingHz=samples.length/(dur/1000);
+  return{label,rep,form,widthRef,widthPx:corridor,lengthPx:A,scale,duration,id,meanError,maxError:Math.max(...dev),sdError:sd(dev),p50Error:q(.5),p90Error,outsideTimePct,nExits,nRecovered:recovered.length,recoveryMedianMs,maxExitMs:episodes.length?Math.max(...episodes.map(e=>e.duration)):0,pathSpeedPxS:pathLen/dur*1000,pathRatio:pathLen/A,fin:'arrivee',n:samples.length,samplingHz,episodes,samples:samples.map(s=>({t:Math.round(s.t),x:Math.round(s.x*10)/10,y:Math.round(s.y*10)/10,d:Math.round(s.d*10)/10})),largeurPx:widthRef,largeurMM:widthRef,duree:duration,ecartMoyen:meanError,ecartP90:p90Error,tempsHorsPct:outsideTimePct,nSorties:nExits,recuperationMedianeMs:recoveryMedianMs,echantillonnage:samplingHz};
+}
+async function startTracing(){
+  const m=meta(),warn=deviceWarn();if(warn)await wait(`<strong>Attention matériel :</strong> ${warn}<br><br>Vous pouvez continuer si c'est volontaire.`,'Continuer');
+  await wait("Douze tunnels droits vont apparaître : <strong>4 largeurs × 3 passages</strong> (28, 18, 12 et 7 px CSS).<br><br><strong>But : va aussi vite que tu peux sans sortir du tunnel.</strong> Ne cherche pas à garder la même vitesse partout : le tunnel large doit permettre d'aller franchement plus vite ; le tunnel très étroit doit t'obliger à ralentir juste assez pour rester dedans.<br><br>Clique une fois sur le point vert, puis guide la souris jusqu'au point rouge <strong>sans maintenir le bouton</strong>. La médiane des 3 passages de chaque largeur sera utilisée pour la régression Steering.");
+  const availableScale=fitScale(TRACE_BASE.w,TRACE_BASE.h,150);
+  if(availableScale<0.98){
+    await wait(`<strong>Fenêtre trop petite pour la géométrie Steering de référence.</strong><br><br>Agrandissez la fenêtre et gardez le zoom du navigateur à 100 % avant de relancer.<br><br>Espace disponible : ${f(availableScale*100,0)} %.`,'Retour');
+    stage.classList.remove('on');return;
+  }
+  const scale=1,baseOrder=TRACE_ORDERS[m.form]||TRACE_ORDERS.A,passes=[],plan=[];
+  for(let rep=1;rep<=3;rep++){
+    const shifted=rep===1?[...baseOrder]:rep===2?[...baseOrder.slice(2),...baseOrder.slice(0,2)]:[...baseOrder].reverse();
+    shifted.forEach(widthRef=>plan.push({widthRef,rep}));
+  }
+  for(let i=0;i<plan.length;i++){
+    if(i)await sleep(250);
+    const q=plan[i];passes.push(await traceRun(q.widthRef,i+1,plan.length,m.form,scale,q.rep));
+  }
+  const medians=TRACE_BASE.widths.map(widthRef=>{
+    const g=passes.filter(p=>p.fin==='arrivee'&&p.widthRef===widthRef);
+    return{widthRef,id:median(g.map(p=>p.id).filter(Number.isFinite)),duration:median(g.map(p=>p.duration).filter(Number.isFinite)),p90Error:median(g.map(p=>p.p90Error).filter(Number.isFinite)),outsideTimePct:median(g.map(p=>p.outsideTimePct).filter(Number.isFinite)),nExits:median(g.map(p=>p.nExits).filter(Number.isFinite)),n:g.length};
+  }).filter(x=>x.n>=2&&Number.isFinite(x.id)&&Number.isFinite(x.duration));
+  let regression=null;
+  if(medians.length>=3){
+    const xs=medians.map(p=>p.id),ys=medians.map(p=>p.duration),mx=mean(xs),my=mean(ys);let num=0,den=0;
+    xs.forEach((x,i)=>{num+=(x-mx)*(ys[i]-my);den+=(x-mx)**2;});
+    const b=den?num/den:NaN,a=my-b*mx,ssTot=ys.reduce((q,y)=>q+(y-my)**2,0),ssRes=xs.reduce((q,x,i)=>q+(ys[i]-(a+b*x))**2,0),r2=ssTot?1-ssRes/ssTot:NaN;
+    regression={slope:b,intercept:a,r2,rawIp:b?1000/b:NaN,ip:null,n:medians.length,pente:b,ordonnee:a,aggregation:'median_of_3_per_width'};
+  }
+  const qcR2Min=0.30;
+  const quality=regression?{
+    interpretable:Number.isFinite(regression.slope)&&regression.slope>0&&Number.isFinite(regression.r2)&&regression.r2>=qcR2Min,
+    positiveSlope:Number.isFinite(regression.slope)&&regression.slope>0,
+    sufficientR2:Number.isFinite(regression.r2)&&regression.r2>=qcR2Min,
+    r2Min:qcR2Min,
+    rule:'heuristic_session_quality_not_clinical_cutoff',
+    note:'Contrôle de cohérence interne : pente positive et R² >= 0,30. Ce seuil est un quality gate de cette implémentation, pas une norme ni un seuil clinique.'
+  }:{interpretable:false,positiveSlope:false,sufficientR2:false,r2Min:qcR2Min,rule:'heuristic_session_quality_not_clinical_cutoff',note:'Régression non calculable.'};
+  if(regression&&quality.interpretable)regression.ip=regression.rawIp;
+  const narrow=medians.find(p=>p.widthRef===7),wide=medians.find(p=>p.widthRef===28);
+  R.trace={version:TEST_VERSION.trace,form:m.form,input:m.device,protocol:'canonical_linear_steering_3reps_28_18_12_7',scale,widthsCssPx:[28,18,12,7],order:plan.map(x=>x.widthRef),plan,passes,mediansByWidth:medians,regression,quality,precisionCostNarrow:narrow&&wide?narrow.p90Error-wide.p90Error:NaN};
+  stage.classList.remove('on');showResults();
+}
+
+/* ---------- DOTS DAVIDSON — CLAVIER ---------- */
+const DAVIDSON10={age:10,meanAge:9.92,n:30,
+  accuracy:{congruent:99.67,incongruent:93.83,mixed:76.96},
+  rt:{congruent:341.13,incongruent:451.83,mixed:654.15},
+  anticipatory:{congruent:6.83,incongruent:5.50,mixed:11.33}};
+function dotMapping(form){return(['A','C'].includes(form))?{striped:'same',solid:'opposite'}:{striped:'opposite',solid:'same'};}
+function maxRun(a,key){let best=0,run=0,last=Symbol('x');for(const x of a){const v=key(x);if(v===last)run++;else{last=v;run=1;}best=Math.max(best,run);}return best;}
+function makeDotPlan(kind,n,rng){
+  if(kind!=='mixed'){
+    const rule=kind==='congruent'?'same':'opposite',sides=shuffleSeeded([...Array(Math.ceil(n/2)).fill(0),...Array(Math.floor(n/2)).fill(1)],rng).slice(0,n);
+    return sides.map(side=>({rule,side}));
+  }
+  // 61 essais => 60 transitions : exactement 30 switch + 30 stay.
+  // On équilibre aussi les réponses correctes (31/30) et on limite les longues séries.
+  for(let attempt=0;attempt<500;attempt++){
+    const transitions=shuffleSeeded([...Array(30).fill(true),...Array(30).fill(false)],rng);
+    let rule=rng()<.5?'same':'opposite';const rules=[rule];
+    for(const sw of transitions){if(sw)rule=rule==='same'?'opposite':'same';rules.push(rule);}
+    const corrects=shuffleSeeded([...Array(31).fill(0),...Array(30).fill(1)],rng);
+    const plan=rules.map((r,i)=>({rule:r,side:r==='same'?corrects[i]:1-corrects[i]}));
+    if(maxRun(plan,x=>x.rule)<=4&&maxRun(plan,x=>x.side)<=4&&maxRun(plan,x=>x.rule==='same'?x.side:1-x.side)<=4)return plan;
+  }
+  // fallback déterministe si les contraintes de série ne convergent pas
+  let rule='same';const plan=[];for(let i=0;i<61;i++){if(i>0&&i%2===0)rule=rule==='same'?'opposite':'same';const correct=i%2;plan.push({rule,side:rule==='same'?correct:1-correct});}return plan;
+}
+function dotKindForRule(rule,map){return map.striped===rule?'striped':'solid';}
+async function timedDotResponse(stimMs,onHide){return new Promise(resolve=>{let done=false;const t0=performance.now();const timer=setTimeout(()=>finish(null,null),stimMs);function key(e){if(done||e.repeat)return;const k=e.key.toLowerCase();if(k!=='f'&&k!=='j')return;e.preventDefault();finish(k==='f'?0:1,Math.round(performance.now()-t0));}function finish(answer,rt){if(done)return;done=true;clearTimeout(timer);document.removeEventListener('keydown',key);if(onHide)onHide();resolve({answer,rt,timeout:answer===null});}document.addEventListener('keydown',key);ABANDON=()=>{done=true;clearTimeout(timer);document.removeEventListener('keydown',key);resolve({aborted:true});};});}
+async function runDotTrial(spec,index,total,blockLabel,map,stimMs,isPractice=false){
+  const kind=dotKindForRule(spec.rule,map),correct=spec.rule==='same'?spec.side:1-spec.side,sideClass=spec.side===0?'left':'right';
+  screenStage(`<div class="blockLabel">${isPractice?'Entraînement · ':''}${blockLabel} · ${index+1} / ${total}</div><div class="dotField" id="dotField"><div class="fix" id="fix">+</div><div class="dotStim ${kind} ${sideClass}" id="dotStim" style="visibility:hidden"></div></div><div class="keyHint">F = gauche&nbsp;&nbsp;&nbsp;&nbsp;J = droite</div><div class="fb" id="fb"></div>`);
+  await sleep(500);const fix=$('fix');if(fix)fix.style.visibility='hidden';
+  await sleep(500);const d=$('dotStim');if(d)d.style.visibility='visible';
+  const res=await timedDotResponse(stimMs,()=>{const z=$('dotStim');if(z)z.style.visibility='hidden';});if(res.aborted)throw new Error('abandon');
+  const anticipatory=res.rt!==null&&res.rt<200,answered=res.answer!==null,ok=answered&&!anticipatory&&res.answer===correct;
+  if(isPractice&&answered&&!anticipatory&&res.answer!==correct){$('fb').textContent='Faux';}
+  await sleep(500);
+  return{n:index+1,block:blockLabel,rule:spec.rule,congruent:spec.rule==='same',kind,side:spec.side===0?'left':'right',correctResponse:correct,response:res.answer,rt:res.rt,answered,anticipatory,ok,fixationMs:500,preStimBlankMs:500,stimulusMs:stimMs,postStimBlankMs:500};
+}
+function summarizeDotsBlock(trials){const valid=trials.filter(t=>!t.anticipatory&&t.answered),correct=valid.filter(t=>t.ok),anticip=trials.filter(t=>t.anticipatory);return{n:trials.length,nValid:valid.length,nCorrect:correct.length,accuracy:valid.length?100*correct.length/valid.length:NaN,rtMedian:median(correct.map(t=>t.rt)),anticipatoryPct:100*anticip.length/trials.length,omissionPct:100*trials.filter(t=>!t.answered).length/trials.length};}
+async function practiceDots(rule,map,rng,stimMs,label){let last=[];for(let round=1;round<=2;round++){const plan=makeDotPlan(rule==='same'?'congruent':'incongruent',4,rng);last=[];for(let i=0;i<plan.length;i++)last.push(await runDotTrial(plan[i],i,plan.length,label,map,stimMs,true));const s=summarizeDotsBlock(last);if(s.accuracy>=75)return{rounds:round,summary:s,trials:last};await wait(`On refait l'entraînement : ${f(s.accuracy,0)} % de réponses correctes. Rappelle la règle à voix haute avant de continuer.`,'Recommencer');}return{rounds:2,summary:summarizeDotsBlock(last),trials:last};}
+async function practiceDotsMixed(map,rng,stimMs){
+  let last=[];
+  for(let round=1;round<=2;round++){
+    const plan=makeDotPlan('mixed',61,rng).slice(0,4);last=[];
+    for(let i=0;i<plan.length;i++)last.push(await runDotTrial(plan[i],i,plan.length,'Mixed',map,stimMs,true));
+    const s=summarizeDotsBlock(last);if(s.accuracy>=75)return{rounds:round,summary:s,trials:last};
+    await wait(`On refait l'entraînement Mixed : ${f(s.accuracy,0)} % de réponses correctes. Rappelle les deux règles à voix haute avant de continuer.`,'Recommencer');
+  }
+  return{rounds:2,summary:summarizeDotsBlock(last),trials:last};
+}
+async function startAlt(){
+  const m=meta(),rng=rngFrom('DOTS-'+m.form+'-'+TEST_VERSION.alt),map=dotMapping(m.form),stimMs=m.age>=7?750:2500;
+  await wait(`Cette épreuve reprend le <strong>Dots task</strong>. Un point apparaît à gauche ou à droite.<br><br><strong>F = réponse gauche · J = réponse droite</strong>.<br><br>${map.striped==='same'?'<strong>Point rayé = même côté</strong><br><strong>Point plein = côté opposé</strong>':'<strong>Point plein = même côté</strong><br><strong>Point rayé = côté opposé</strong>'}.<br><br>Chaque essai : fixation 500 ms → blanc 500 ms → cible → blanc 500 ms. Après les entraînements, il n'y aura plus de retour d'erreur.`);
+  const pCong=await practiceDots('same',map,rng,stimMs,'Même côté');
+  await wait("Bloc 1 · <strong>Même côté</strong> — 20 essais. Réponds du même côté que le point.",'Commencer');
+  const congPlan=makeDotPlan('congruent',20,rng),congruent=[];for(let i=0;i<20;i++)congruent.push(await runDotTrial(congPlan[i],i,20,'Congruent',map,stimMs,false));
+  const pInc=await practiceDots('opposite',map,rng,stimMs,'Côté opposé');
+  await wait("Bloc 2 · <strong>Côté opposé</strong> — 20 essais. Réponds du côté opposé au point.",'Commencer');
+  const incPlan=makeDotPlan('incongruent',20,rng),incongruent=[];for(let i=0;i<20;i++)incongruent.push(await runDotTrial(incPlan[i],i,20,'Incongruent',map,stimMs,false));
+  const pMixed=await practiceDotsMixed(map,rng,stimMs);
+  await wait(`Bloc 3 · <strong>Mixed</strong> — les deux règles sont mélangées.<br><br>${map.striped==='same'?'Rayé = même côté · Plein = côté opposé':'Plein = même côté · Rayé = côté opposé'}.<br><br><strong>61 essais</strong>. Le premier amorce la série ; les 60 transitions suivantes sont équilibrées entre changement et maintien de règle.`,'Commencer');
+  const mixPlan=makeDotPlan('mixed',61,rng),mixed=[];for(let i=0;i<61;i++)mixed.push(await runDotTrial(mixPlan[i],i,61,'Mixed',map,stimMs,false));
+  const cs=summarizeDotsBlock(congruent),is=summarizeDotsBlock(incongruent),ms=summarizeDotsBlock(mixed);
+  mixed.forEach((t,i)=>{t.switch=i>0&&t.rule!==mixed[i-1].rule;t.transitionAnalyzable=i>0;t.rtIncluded=t.ok&&t.rt>=200;});
+  const transitions=mixed.slice(1),stay=transitions.filter(t=>!t.switch),sw=transitions.filter(t=>t.switch),med=a=>median(a.filter(t=>t.ok&&t.rt>=200).map(t=>t.rt)),acc=a=>{const v=a.filter(t=>!t.anticipatory&&t.answered);return v.length?100*v.filter(t=>t.ok).length/v.length:NaN;};
+  const rtStay=med(stay),rtSwitch=med(sw),errStay=100-acc(stay),errSwitch=100-acc(sw);
+  const cell=(switchFlag,rule)=>{const a=transitions.filter(t=>t.switch===switchFlag&&t.rule===rule),v=a.filter(t=>!t.anticipatory&&t.answered),r=a.filter(t=>t.ok&&t.rt>=200).map(t=>t.rt);return{n:a.length,rt:median(r),accuracy:v.length?100*v.filter(t=>t.ok).length/v.length:NaN,error:v.length?100*v.filter(t=>!t.ok).length/v.length:NaN};};
+  const cells={stayCong:cell(false,'same'),stayInc:cell(false,'opposite'),switchCong:cell(true,'same'),switchInc:cell(true,'opposite')};
+  const inhibitionStableRT=cells.stayInc.rt-cells.stayCong.rt,inhibitionSwitchRT=cells.switchInc.rt-cells.switchCong.rt,inhibitionStableErr=cells.stayInc.error-cells.stayCong.error,inhibitionSwitchErr=cells.switchInc.error-cells.switchCong.error;
+  const post=[];for(let i=1;i<mixed.length;i++)if(!mixed[i-1].ok&&mixed[i].ok&&mixed[i].rt>=200)post.push(mixed[i].rt);
+  const all=[...congruent,...incongruent,...mixed],validRT=all.filter(t=>t.ok&&t.rt>=200).map(t=>t.rt),mrt=median(validRT),mad=median(validRT.map(x=>Math.abs(x-mrt)))*1.4826,longCut=mad>0?mrt+3*mad:Infinity;all.forEach(t=>t.lapse=t.ok&&t.rt>=200&&t.rt>longCut);
+  R.alt={version:TEST_VERSION.alt,protocol:'Wang2015_Dots_keyboard_20_20_61_close',form:m.form,input:'keyboard_FJ',mapping:map,fixationMs:500,preStimBlankMs:500,stimulusMs:stimMs,postStimBlankMs:500,reference10:DAVIDSON10,referenceNote:'Wang et al. 2015 is the closest protocol anchor for keyboard/timing/20-20-61; Davidson 10-year means refer to original 20/20/20 protocol and are only historical context for Mixed 61.',practice:{congruent:pCong,incongruent:pInc,mixed:pMixed},blocks:{congruent:cs,incongruent:is,mixed:ms},congruentTrials:congruent,incongruentTrials:incongruent,mixedTrials:mixed,trials:mixed,n:mixed.length,
+    steadyInhibitionCostRT:is.rtMedian-cs.rtMedian,steadyInhibitionCostAccuracy:cs.accuracy-is.accuracy,mixingCostRT:ms.rtMedian-is.rtMedian,mixingCostAccuracy:is.accuracy-ms.accuracy,
+    rtStay,rtSwitch,switchCost:rtSwitch-rtStay,errStay,errSwitch,errorCost:errSwitch-errStay,nStay:stay.length,nSwitch:sw.length,cells,inhibitionStableRT,inhibitionSwitchRT,contextualInhibitionOvercostRT:inhibitionSwitchRT-inhibitionStableRT,inhibitionStableErr,inhibitionSwitchErr,contextualInhibitionOvercostErr:inhibitionSwitchErr-inhibitionStableErr,
+    nLapses:all.filter(t=>t.lapse).length,longCut,nPostError:post.length,postErrorAdjustment:median(post)-rtStay};
+  Object.assign(R.alt,{rtBascule:R.alt.rtSwitch,rtStable:R.alt.rtStay,coutBascule:R.alt.switchCost,coutCongruence:R.alt.steadyInhibitionCostRT,errBascule:R.alt.errSwitch,errStable:R.alt.errStay,coutErreur:R.alt.errorCost,nBascule:R.alt.nSwitch,nStable:R.alt.nStay,rtCutHigh:R.alt.longCut,nPostErreur:R.alt.nPostError,ajustementApresErreur:R.alt.postErrorAdjustment});
+  stage.classList.remove('on');showResults();
+}
+
+/* ---------- RESULTATS / EXPORT ---------- */
+function metricRecord(id,domain,label,value,unit,evidence,source,note='',reference=null,direction='neutral',paradigm=''){return{id,domain,label,value:(value===null||value===undefined||value==='')?null:(Number.isFinite(+value)?+value:null),unit,evidence,source,note,reference,direction,paradigm:paradigm||id.split('.')[0]};}
+function buildAnalysisProfile(){const out=[];
+  if(R.point){const p=R.point,src='Lambert & Bard, 2005';
+    out.push(metricRecord('point.mt','coordination_visuomotrice','Pointage souris — temps de mouvement moyen',p.rtMean,'ms','B',src,'B développemental : pointage 2D avec souris standard et trois tailles de cible chez les enfants de 6, 8 et 10 ans. Géométrie non identique : pas de norme numérique.',null,'lower_better','fitts_pointing'));
+    out.push(metricRecord('point.fitts_slope','coordination_visuomotrice','Pointage souris — pente de Fitts',p.slope,'ms/ID','B',src,'Mesure centrale : relation ID = log₂(D/W+1) → temps de mouvement.',null,'lower_better','fitts_pointing'));
+    out.push(metricRecord('point.fitts_r2','coordination_visuomotrice','Pointage souris — R² Fitts',p.r2,'','B',src,'Adéquation de la performance individuelle à la loi de Fitts ; pas un score clinique.',null,'neutral','fitts_pointing'));
+    out.push(metricRecord('point.hit_rate','coordination_visuomotrice','Pointage souris — cibles atteintes',p.hitRate,'%','C',src,'Précision fonctionnelle propre à cette géométrie.',null,'higher_better','fitts_pointing'));
+    out.push(metricRecord('point.endpoint_error','coordination_visuomotrice','Pointage souris — erreur terminale',p.endpointErrorMean,'px','C',src,'Dépend de l’écran et du réglage de souris.',null,'lower_better','fitts_pointing'));
+    out.push(metricRecord('point.path_efficiency','coordination_visuomotrice','Pointage souris — efficacité de trajectoire',p.pathEfficiencyMean,'','C',src,'Extension propre à cette implémentation.',null,'higher_better','fitts_pointing'));
+  }
+  if(R.trace){const t=R.trace,src='Accot & Zhai, 1997/1999';if(t.regression){const ok=!!(t.quality&&t.quality.interpretable);
+    out.push(metricRecord('trace.steering_slope','regulation_sensorimotrice','Pilotage souris — pente Steering Law',ok?t.regression.slope:null,'ms/ID','B',src,ok?'B méthodologique : tunnel droit à largeur constante, ID = A/W, souris ; contrôle qualité validé.':'Valeur brute conservée dans tracage.regression mais non interprétée : pente/R² ne valident pas le contrôle de cohérence de la séance.',null,'lower_better','steering_trace'));
+    out.push(metricRecord('trace.steering_r2','regulation_sensorimotrice','Pilotage souris — R² Steering Law',t.regression.r2,'','B',src,`Contrôle de cohérence de la relation difficulté–temps ; quality gate interne R² >= ${t.quality?.r2Min??0.30} avec pente positive, sans valeur clinique.`,null,'neutral','steering_trace'));
+    out.push(metricRecord('trace.steering_ip','regulation_sensorimotrice','Pilotage souris — indice 1/pente',ok?t.regression.ip:null,'ID/s','C',src,ok?'Indice interne dérivé pour le suivi sur même matériel.':'Indice neutralisé car le contrôle qualité Steering n’est pas validé.',null,'higher_better','steering_trace'));}
+    const v=t.passes.filter(x=>x.fin==='arrivee');if(v.length){out.push(metricRecord('trace.p90_error','regulation_sensorimotrice','Pilotage souris — P90 écart',mean(v.map(x=>x.p90Error)),'px','C',src,'Extension de précision.',null,'lower_better','steering_trace'));out.push(metricRecord('trace.outside_time','regulation_sensorimotrice','Pilotage souris — temps hors tunnel',mean(v.map(x=>x.outsideTimePct)),'%','C',src,'Extension fonctionnelle.',null,'lower_better','steering_trace'));out.push(metricRecord('trace.recovery','regulation_sensorimotrice','Pilotage souris — récupération après sortie',median(v.map(x=>x.recoveryMedianMs).filter(Number.isFinite)),'ms','C','Thorsson et al., 2023','Hypothèse de correction en ligne ; pas norme.',null,'lower_better','steering_trace'));}}
+  if(R.alt){const a=R.alt,src='Davidson et al., 2006',r=DAVIDSON10;
+    const ref=(meanVal,variable)=>({mean:meanVal,sd:null,se:null,age:10,n:r.n,comparable:false,note:`Moyenne publiée à 10 ans pour ${variable}; absence d’ET et remplacement du boîtier à pouces par F/J : repère descriptif seulement.`});
+    out.push(metricRecord('dots.congruent_accuracy','inhibition_cognitive','Dots — exactitude bloc Congruent',a.blocks.congruent.accuracy,'%','B',src,'Même logique de bloc, 20 essais.',ref(r.accuracy.congruent,'Dots Congruent accuracy'),'higher_better','task_switching'));
+    out.push(metricRecord('dots.incongruent_accuracy','inhibition_cognitive','Dots — exactitude bloc Incongruent',a.blocks.incongruent.accuracy,'%','B',src,'Inhibition spatiale en état stable.',ref(r.accuracy.incongruent,'Dots Incongruent accuracy'),'higher_better','task_switching'));
+    out.push(metricRecord('dots.mixed_accuracy','flexibilite_cognitive','Dots — exactitude bloc Mixed 61',a.blocks.mixed.accuracy,'%','B','Davidson et al., 2006 ; Wang et al., 2015','Bloc Mixed étendu à 61 essais selon une adaptation publiée au clavier ; repère Davidson 20 essais affiché séparément mais non utilisé comme norme directe.',null,'higher_better','task_switching'));
+    out.push(metricRecord('dots.congruent_rt','inhibition_cognitive','Dots — RT médian Congruent',a.blocks.congruent.rtMedian,'ms','B',src,'RT médian correct >200 ms, comme Davidson.',ref(r.rt.congruent,'Dots Congruent RT'),'lower_better','task_switching'));
+    out.push(metricRecord('dots.incongruent_rt','inhibition_cognitive','Dots — RT médian Incongruent',a.blocks.incongruent.rtMedian,'ms','B',src,'RT médian correct >200 ms.',ref(r.rt.incongruent,'Dots Incongruent RT'),'lower_better','task_switching'));
+    out.push(metricRecord('dots.mixed_rt','flexibilite_cognitive','Dots — RT médian Mixed 61',a.blocks.mixed.rtMedian,'ms','B','Davidson et al., 2006 ; Wang et al., 2015','RT médian correct >200 ms ; 61 essais Mixed. Pas de z-score Davidson sur cette version étendue.',null,'lower_better','task_switching'));
+    out.push(metricRecord('switch.rt_cost','flexibilite_cognitive','Dots Mixed — coût local RT switch',a.switchCost,'ms','B','Davidson et al., 2006 ; Wang et al., 2015','60 transitions analysables, équilibrées 30 switch / 30 stay ; RT médian des réponses correctes >200 ms.',null,'lower_better','task_switching'));
+    out.push(metricRecord('switch.error_cost','flexibilite_cognitive','Dots Mixed — coût local d’erreur switch',a.errorCost,'points','B',src,'Coût local en précision, particulièrement informatif chez l’enfant.',null,'lower_better','task_switching'));
+    out.push(metricRecord('switch.interference','inhibition_cognitive','Dots — coût inhibition stable',a.steadyInhibitionCostRT,'ms','B',src,'Bloc Incongruent − bloc Congruent.',null,'lower_better','task_switching'));
+    out.push(metricRecord('switch.inhibition_stable','inhibition_cognitive','Dots Mixed — interférence en stay',a.inhibitionStableRT,'ms','C',src,'Décomposition secondaire du bloc Mixed.',null,'lower_better','task_switching'));
+    out.push(metricRecord('switch.inhibition_switch','inhibition_cognitive','Dots Mixed — interférence en switch',a.inhibitionSwitchRT,'ms','C',src,'Décomposition secondaire du bloc Mixed.',null,'lower_better','task_switching'));
+    out.push(metricRecord('switch.contextual_overcost','inhibition_cognitive','Dots — surcoût switch×incongruence',a.contextualInhibitionOvercostRT,'ms','D',src,'Interaction exploratoire.',null,'lower_better','task_switching'));
+    out.push(metricRecord('switch.post_error','monitoring_erreur','Dots — ajustement post-erreur',a.postErrorAdjustment,'ms','D','Post-error slowing literature','Exploratoire ; dépend du nombre d’erreurs.',null,'neutral','task_switching'));
+  }
+  return out;}
+function showResults(){
+  $('home').style.display='none';$('results').style.display='block';scrollTo(0,0);const m=R.meta.id?R.meta:meta();let h=`<p class="muted mono">${esc(m.id)} · ${m.age} ans · ${esc(m.date)} · forme ${esc(m.form)}${m.cond?' · '+esc(m.cond):''}</p><p class="muted mono">${esc(m.batteryVersion)} · ${esc(m.device)} · main ${esc(m.mouseHand)} · viewport ${esc(m.viewport)} · DPR ${f(m.dpr,2)}</p><div class="warn"><p class="muted"><strong>Lecture.</strong> Le noyau de chaque épreuve est B : proximité développementale pour Fitts et Dots, validation méthodologique pour Steering. B ne signifie ni étalonnage clinique ni diagnostic. Les extensions propres à la batterie restent C/D.</p></div>`;
+  if(!R.point&&!R.trace&&!R.alt){$('resultBody').innerHTML=h+'<p>Aucune épreuve passée.</p>';return;}
+  if(R.point){const p=R.point;h+=`<h2>Pointage souris <span class="level">B · développemental</span></h2><table><tr><th>Mesure</th><th>Valeur</th><th>Niveau</th></tr><tr><td>Temps de mouvement moyen</td><td class="num">${f(p.rtMean)} ms</td><td>B</td></tr><tr><td>Pente Fitts</td><td class="num">${f(p.slope)} ms/ID</td><td>B</td></tr><tr><td>R² Fitts</td><td class="num">${f(p.r2,2)}</td><td>B</td></tr><tr><td>Cibles atteintes</td><td class="num">${f(p.hitRate,1)} %</td><td>C</td></tr><tr><td>Erreur terminale</td><td class="num">${f(p.endpointErrorMean,1)} px</td><td>C</td></tr><tr><td>Efficacité de trajectoire</td><td class="num">${f(p.pathEfficiencyMean,3)}</td><td>C</td></tr></table><p class="muted">Lambert & Bard (2005) : enfants de 6, 8 et 10 ans, ordinateur portable, souris standard, trois tailles de cible. Pas de norme numérique appliquée à notre géométrie.</p>`;}
+  if(R.trace){const t=R.trace,ok=!!(t.quality&&t.quality.interpretable);h+=`<h2>Pilotage souris <span class="level">B · méthodologique</span></h2><p class="muted">Tunnel droit, largeur constante, ID=A/W · <strong>28 / 18 / 12 / 7 px CSS</strong> × 3 passages. Consigne : aussi vite que possible sans sortir. La régression utilise la médiane des 3 passages par largeur.</p><table><tr><th>Largeur</th><th>ID A/W</th><th>Durée médiane</th><th>P90 écart médian</th><th>Temps hors médian</th><th>Sorties médianes</th></tr>${(t.mediansByWidth||[]).map(x=>`<tr><td>${x.widthRef} px</td><td class="num">${f(x.id,2)}</td><td class="num">${f(x.duration)} ms</td><td class="num">${f(x.p90Error,1)} px</td><td class="num">${f(x.outsideTimePct,1)} %</td><td class="num">${f(x.nExits,1)}</td></tr>`).join('')}</table>`;if(t.regression){if(!ok)h+=`<div class="warn"><p><strong>Contrôle qualité Steering non validé — résultat non interprétable.</strong> La pente brute est ${f(t.regression.slope)} ms/ID et R²=${f(t.regression.r2,2)}. Le quality gate demande une pente positive et R² ≥ ${f(t.quality?.r2Min??0.30,2)} ; il s'agit d'un contrôle interne de cohérence, pas d'un seuil clinique.</p></div>`;h+=`<table style="margin-top:10px"><tr><th>Mesure</th><th>Valeur</th><th>Statut</th></tr><tr><td>${ok?'Pente Steering':'Pente brute'}</td><td class="num">${f(t.regression.slope)} ms/ID</td><td>${ok?'B · QC validé':'non interprétée'}</td></tr><tr><td>R² Steering</td><td class="num">${f(t.regression.r2,2)}</td><td>${ok?'QC validé':'QC insuffisant'}</td></tr><tr><td>Indice 1/pente</td><td class="num">${ok?f(t.regression.ip,2):'—'}${ok?' ID/s':''}</td><td>${ok?'C':'neutralisé'}</td></tr></table>`;}}
+  if(R.alt){const a=R.alt,r=a.reference10,b=a.blocks;h+=`<h2>Dots — inhibition et bascule <span class="level">B · développemental</span></h2><p class="muted">Protocole V6.2 / Wang 2015 : 20 Congruent → 20 Incongruent → <strong>61 Mixed</strong> ; fixation 500 ms → blanc 500 ms → cible jusqu'à ${a.stimulusMs} ms → blanc 500 ms ; F/J. Les repères à 10 ans de Davidson correspondent à son Mixed 20 essais et sont donc historiques/descriptifs pour notre Mixed 61.</p><table><tr><th>Bloc</th><th>Exactitude</th><th>Repère 10 ans</th><th>RT médian</th><th>Repère 10 ans</th><th>Anticipations</th></tr><tr><td>Congruent</td><td class="num">${f(b.congruent.accuracy,1)} %</td><td class="num">${f(r.accuracy.congruent,2)} %</td><td class="num">${f(b.congruent.rtMedian)} ms</td><td class="num">${f(r.rt.congruent,2)} ms</td><td class="num">${f(b.congruent.anticipatoryPct,1)} %</td></tr><tr><td>Incongruent</td><td class="num">${f(b.incongruent.accuracy,1)} %</td><td class="num">${f(r.accuracy.incongruent,2)} %</td><td class="num">${f(b.incongruent.rtMedian)} ms</td><td class="num">${f(r.rt.incongruent,2)} ms</td><td class="num">${f(b.incongruent.anticipatoryPct,1)} %</td></tr><tr><td>Mixed 61</td><td class="num">${f(b.mixed.accuracy,1)} %</td><td class="num">${f(r.accuracy.mixed,2)} % <span class="small">(Davidson 20)</span></td><td class="num">${f(b.mixed.rtMedian)} ms</td><td class="num">${f(r.rt.mixed,2)} ms <span class="small">(Davidson 20)</span></td><td class="num">${f(b.mixed.anticipatoryPct,1)} %</td></tr></table><p class="muted">Repères Davidson à 10 ans : n=${r.n}, âge moyen ${r.meanAge}. Ils sont directement descriptifs pour les blocs Congruent/Incongruent à 20 essais ; pour Mixed 61, ils servent seulement de contexte historique. <strong>Aucun z-score.</strong></p><h3>Coûts B</h3><table><tr><td>Inhibition stable : Incongruent − Congruent</td><td class="num">${f(a.steadyInhibitionCostRT)} ms · ${f(a.steadyInhibitionCostAccuracy,1)} pts</td></tr><tr><td>Mixing : Mixed − Incongruent</td><td class="num">${f(a.mixingCostRT)} ms · ${f(a.mixingCostAccuracy,1)} pts</td></tr><tr><td>Coût local switch dans Mixed</td><td class="num">${f(a.switchCost)} ms · ${f(a.errorCost,1)} pts erreur</td></tr></table><h3>Extensions</h3><table><tr><td>Interférence stay</td><td class="num">${f(a.inhibitionStableRT)} ms</td><td>C</td></tr><tr><td>Interférence switch</td><td class="num">${f(a.inhibitionSwitchRT)} ms</td><td>C</td></tr><tr><td>Surcoût switch×incongruence</td><td class="num">${f(a.contextualInhibitionOvercostRT)} ms</td><td>D</td></tr><tr><td>Ajustement post-erreur</td><td class="num">${f(a.postErrorAdjustment)} ms</td><td>D</td></tr></table>`;}
+  h+=`<h2>Transmission</h2><h3>Résumé</h3><textarea id="csvOut" readonly>${esc(csvOut(m))}</textarea><h3>Détail</h3><textarea id="csvDet" readonly>${esc(csvDet(m))}</textarea><p class="muted">Pour le longitudinal, conserver le même ordinateur, la même souris, le même réglage du pointeur, le même zoom et la même forme.</p>`;$('resultBody').innerHTML=h;
+}
+function csvOut(m){const p=R.point,t=R.trace,a=R.alt,head=['session_id','version','id','date','age','contexte','forme','peripherique','main_souris','viewport','dpr','point_rt_mean','point_fitts_slope','point_fitts_r2','point_hit_pct','point_error_px','trace_slope','trace_r2','trace_ip','dots_cong_acc','dots_inc_acc','dots_mixed_acc','dots_cong_rt','dots_inc_rt','dots_mixed_rt','dots_cong_ar','dots_inc_ar','dots_mixed_ar','dots_inhibition_cost_rt','dots_mixing_cost_rt','dots_switch_cost_rt','dots_switch_cost_err'];const row=[m.sessionId,m.batteryVersion,m.id,m.date,m.age,m.cond,m.form,m.device,m.mouseHand,m.viewport,m.dpr,p?fr(p.rtMean):'',p?fr(p.slope):'',p?fr(p.r2):'',p?fr(p.hitRate):'',p?fr(p.endpointErrorMean):'',t&&t.regression?fr(t.regression.slope):'',t&&t.regression?fr(t.regression.r2):'',t&&t.regression?fr(t.regression.ip):'',a?fr(a.blocks.congruent.accuracy):'',a?fr(a.blocks.incongruent.accuracy):'',a?fr(a.blocks.mixed.accuracy):'',a?fr(a.blocks.congruent.rtMedian):'',a?fr(a.blocks.incongruent.rtMedian):'',a?fr(a.blocks.mixed.rtMedian):'',a?fr(a.blocks.congruent.anticipatoryPct):'',a?fr(a.blocks.incongruent.anticipatoryPct):'',a?fr(a.blocks.mixed.anticipatoryPct):'',a?fr(a.steadyInhibitionCostRT):'',a?fr(a.mixingCostRT):'',a?fr(a.switchCost):'',a?fr(a.errorCost):''];return csvLine(head)+'\n'+csvLine(row);}
+function csvDet(m){const L=[csvLine(['session_id','epreuve','essai','forme','condition','stimulus','reponse','rt_ms','correct','mesure1','mesure2','info'])];if(R.point)R.point.trials.forEach(x=>L.push(csvLine([m.sessionId,'pointage_souris',x.n,m.form,`W${x.wRef}_D${x.dRef}_ID${f(x.ID,2)}`,'cible',`x${f(x.responseX,1)}_y${f(x.responseY,1)}`,x.rt,x.hit,fr(x.endpointErrorPx),fr(x.pathEfficiency),`scale=${f(x.scale,3)};pointer=${x.pointerType}`])));if(R.trace)R.trace.passes.forEach(x=>L.push(csvLine([m.sessionId,'steering_souris',x.label,m.form,`W${x.widthRef}_ID${f(x.id,2)}`,'tunnel_droit','',x.duration,true,fr(x.p90Error),fr(x.outsideTimePct),`rep=${x.rep};sorties=${x.nExits};recup=${fr(x.recoveryMedianMs)};Hz=${fr(x.samplingHz)}`])));if(R.alt){for(const arr of [R.alt.congruentTrials,R.alt.incongruentTrials,R.alt.mixedTrials])arr.forEach(x=>L.push(csvLine([m.sessionId,'dots_davidson',x.n,m.form,x.block,`${x.kind}_${x.side}_${x.rule}`,x.response===null?'':(x.response===0?'F':'J'),x.rt??'',x.ok,x.anticipatory?'anticipation':'',x.answered?'':'omission',`correct=${x.correctResponse===0?'F':'J'}`])));}return L.join('\n');}
+function jsonPayload(){
+  return {schemaVersion:'neuro-battery-analysis-2',metadata:R.meta,analysisProfile:buildAnalysisProfile(),pointage:R.point,tracage:R.trace,attentionAlternee:R.alt};
+}
+function jsonFilename(){
+  return `batterie_visuomotrice_ordinateur_${(R.meta.id||'session').replace(/[^a-z0-9_-]/gi,'_')}_${new Date().toISOString().slice(0,10)}.json`;
+}
+function exportStatus(txt,ok=true){
+  const el=$('exportMsg'); if(!el)return; el.textContent=txt; el.style.color=ok?'var(--moss)':'var(--plum)';
+  clearTimeout(exportStatus._t); exportStatus._t=setTimeout(()=>{if(el)el.textContent='';},5000);
+}
+async function downloadJSON(button){
+  try{
+    // Construire le JSON avant toute tentative de sauvegarde : une erreur de profil
+    // devient ainsi visible au lieu de donner l'impression d'un bouton inactif.
+    const text=JSON.stringify(jsonPayload(),null,2), filename=jsonFilename();
+
+    // Sur Chrome/Edge en contexte sécurisé, le sélecteur natif est le chemin
+    // le plus fiable. S'il est indisponible ou refusé, on retombe sur le lien Blob.
+    if(window.isSecureContext && 'showSaveFilePicker' in window){
+      try{
+        const handle=await window.showSaveFilePicker({
+          suggestedName:filename,
+          types:[{description:'Fichier JSON',accept:{'application/json':['.json']}}]
+        });
+        const writable=await handle.createWritable();
+        await writable.write(new Blob([text],{type:'application/json;charset=utf-8'}));
+        await writable.close();
+        exportStatus('JSON enregistré.');
+        return;
+      }catch(e){
+        // AbortError = l'utilisateur a fermé le dialogue : ne pas déclencher
+        // immédiatement un second téléchargement inattendu.
+        if(e && e.name==='AbortError'){exportStatus('Enregistrement annulé.',false);return;}
+        // SecurityError / NotAllowedError : essayer la méthode universelle ci-dessous.
+      }
+    }
+
+    const blob=new Blob([text],{type:'application/json;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download=filename; a.rel='noopener'; a.style.display='none';
+    document.body.appendChild(a);
+    a.click();
+    exportStatus('Export JSON lancé.');
+    setTimeout(()=>{try{a.remove();URL.revokeObjectURL(url);}catch(e){}},5000);
+  }catch(e){
+    console.error('Export JSON impossible',e);
+    exportStatus('Export bloqué — utilisez « Copier le JSON ».',false);
+  }
+}
+async function copyJSON(button){
+  try{
+    const text=JSON.stringify(jsonPayload(),null,2);
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      await navigator.clipboard.writeText(text);
+    }else{
+      const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();
+    }
+    exportStatus('JSON copié dans le presse-papiers.');
+    if(button){const o=button.textContent;button.textContent='JSON copié';setTimeout(()=>button.textContent=o,1300);}
+  }catch(e){
+    console.error('Copie JSON impossible',e);exportStatus('Copie impossible dans ce navigateur.',false);
+  }
+}
+function copyText(id,button){const el=$(id),txt=el.value;el.select();el.setSelectionRange(0,999999);if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).catch(()=>{});else try{document.execCommand('copy');}catch(e){}if(button){const o=button.textContent;button.textContent='Copié';setTimeout(()=>button.textContent=o,1300);}}
+$('device').onchange=desktopInfo;addEventListener('resize',desktopInfo);desktopInfo();
+</script>
+<style id="nb-runner-style">
+  #home,#results{display:none!important}
+  #quit{display:none!important}
+  .nb-runner-intro,.nb-runner-phase,.nb-runner-done{position:fixed;inset:0;z-index:9999;background:#E6E9E4;color:#1C2321;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  .nb-runner-box{width:min(620px,94vw);background:#F2F4F0;border:1px solid #C3C9BE;padding:26px}
+  .nb-runner-box h1{font-family:"Palatino Linotype",Palatino,Georgia,serif;font-size:1.8rem;margin:0 0 10px}
+  .nb-runner-box p{line-height:1.55;color:#5A635C}
+  .nb-runner-box button{margin-top:12px}
+</style>
+
+<script>
+(()=>{
+  const Q=new URLSearchParams(location.search);if(Q.get('runner')!=='1')return;
+  const test=Q.get('test')||'point';
+  const meta={pid:Q.get('pid')||'-',cond:Q.get('cond')||'',form:Q.get('form')||'A',hand:Q.get('hand')||'droite',masterSession:Q.get('session')||''};
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const clean=x=>JSON.parse(JSON.stringify(x,(k,v)=>v instanceof Set?[...v]:v));
+  const labels={point:['Pointage Fitts','Pointage à la souris : relation entre difficulté géométrique, temps et précision.'],trace:['Steering','Pilotage du curseur dans des tunnels droits de difficulté croissante.'],dots:['Dots — attention alternée','Règles même côté / côté opposé ; inhibition stable puis changements de règle.']};
+  function setMeta(){if($('pid'))$('pid').value=meta.pid;if($('cond'))$('cond').value=meta.cond;if($('mouseHand'))$('mouseHand').value=meta.hand;if($('device'))$('device').value='souris';if($('form'))$('form').value=['A','B','C','D'].includes(meta.form)?meta.form:'A';}
+  function send(type,payload={}){parent.postMessage({app:'neuro-observation-web',type,test,...payload},'*');}
+  function result(){return test==='point'?R.point:test==='trace'?R.trace:R.alt;}
+  function finish(){const profile=typeof buildAnalysisProfile==='function'?buildAnalysisProfile():[];send('test-complete',{payload:clean({engine:'visuomotricite-v6.3',masterSession:meta.masterSession,meta:R.meta,result:result(),analysisProfile:profile})});document.body.insertAdjacentHTML('beforeend','<div class="nb-runner-done"><div class="nb-runner-box"><h1>Épreuve terminée</h1><p>Le résultat a été transmis à la séance.</p></div></div>');}
+  const originalShow=showResults; showResults=function(){finish();};
+  const originalHome=goHome; goHome=function(){send('test-cancelled');};
+  setMeta();const [title,desc]=labels[test]||labels.point;
+  const intro=document.createElement('div');intro.className='nb-runner-intro';intro.innerHTML=`<div class="nb-runner-box"><div style="font:12px ui-monospace;color:#6B3F5B;letter-spacing:.12em;text-transform:uppercase">Épreuve</div><h1>${esc(title)}</h1><p>${esc(desc)}</p><p><strong>Souris externe recommandée.</strong> Le trackpad modifie le geste mesuré.</p><button id="nbStart">Commencer</button></div>`;document.body.appendChild(intro);
+  document.getElementById('nbStart').onclick=()=>{intro.remove();setMeta();const fn={point:startPointing,trace:startTracing,dots:startAlt}[test]||startPointing;epreuve(fn);};
+  send('runner-ready');
+})();
+</script>
+
+</body>
+</html>

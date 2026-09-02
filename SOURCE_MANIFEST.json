@@ -1,0 +1,38 @@
+{
+  "appVersion": "web-1.2.0",
+  "sources": [
+    {
+      "file": "source-snapshots/batterie-attention-v4.html",
+      "sha256": "fc82e192e44b32c0e9f62e17801e6541d390d3e2ee733ed5b41e8ba8393ed477",
+      "bytes": 47259
+    },
+    {
+      "file": "source-snapshots/batterie-neuro-v4.html",
+      "sha256": "4f058ae17c8b1bc44d8ff0f2c1a7c71bb7fc4261105abd6040e4ff70fabd438a",
+      "bytes": 54597
+    },
+    {
+      "file": "source-snapshots/batterie-visuomotrice-v6.3.html",
+      "sha256": "de40cc7a3a0474418f73ee3af37af542a5901426880705b43fbe51d0327c79a7",
+      "bytes": 61760
+    }
+  ],
+  "runners": [
+    {
+      "file": "runners/attention.html",
+      "sha256": "5c6f2d22386ebb15d400698642067a03a51d4797a922c2d6ad2d9ddf98657780",
+      "bytes": 50642
+    },
+    {
+      "file": "runners/neuro.html",
+      "sha256": "5ed5bfdd51ba1e1b5717227766ee13a34c53a9efb12aa0b2a329503d350b6ba6",
+      "bytes": 58941
+    },
+    {
+      "file": "runners/visuo.html",
+      "sha256": "3facfc8197644a9ebf3f86fd45eeb104efa41f401fc82239e836775f704177aa",
+      "bytes": 65031
+    }
+  ],
+  "functionalAnalysisVersion": "functional-analysis-1.0"
+}

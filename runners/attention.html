@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Carnet d'épreuves — attention & flexibilité</title>
+<style>
+  :root{
+    --paper:#E6E9E4;
+    --paper-2:#F2F4F0;
+    --ink:#1C2321;
+    --ink-soft:#5A635C;
+    --plum:#6B3F5B;
+    --ochre:#B8811F;
+    --moss:#3E6B4F;
+    --rule:#C3C9BE;
+    --neutral-test:#8C8C8C;
+    --display:"Palatino Linotype",Palatino,"Iowan Old Style",Georgia,serif;
+    --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --data:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--body);
+    font-size:16px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:880px;margin:0 auto;padding:32px 20px 80px}
+  h1,h2,h3{font-family:var(--display);font-weight:600;letter-spacing:-0.01em;margin:0}
+  h1{font-size:2.1rem;line-height:1.15}
+  h2{font-size:1.35rem;margin:28px 0 10px}
+  h3{font-size:1.05rem;margin:20px 0 6px}
+  p{margin:8px 0}
+  .eyebrow{
+    font-family:var(--data);font-size:.72rem;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--plum);margin-bottom:6px;
+  }
+  .lede{color:var(--ink-soft);max-width:62ch}
+  hr{border:0;border-top:1px solid var(--rule);margin:24px 0}
+  .card{
+    background:var(--paper-2);border:1px solid var(--rule);
+    padding:20px;margin:16px 0;
+  }
+  button{
+    font-family:var(--body);font-size:.95rem;
+    background:var(--ink);color:var(--paper-2);
+    border:1px solid var(--ink);padding:10px 18px;cursor:pointer;
+  }
+  button:hover{background:var(--plum);border-color:var(--plum)}
+  button.ghost{background:transparent;color:var(--ink);border-color:var(--rule)}
+  button.ghost:hover{background:var(--paper);border-color:var(--ink);color:var(--ink)}
+  button:focus-visible,input:focus-visible,select:focus-visible{
+    outline:2px solid var(--ochre);outline-offset:2px;
+  }
+  label{display:block;font-size:.85rem;color:var(--ink-soft);margin-bottom:3px}
+  input,select{
+    font-family:var(--data);font-size:.9rem;padding:7px 9px;
+    border:1px solid var(--rule);background:#fff;color:var(--ink);width:100%;
+  }
+  .grid{display:grid;gap:14px}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
+  .muted{color:var(--ink-soft);font-size:.85rem}
+  code,.mono{font-family:var(--data)}
+
+  /* --- écran de passation : volontairement neutre, faible arousal --- */
+  #stage{
+    position:fixed;inset:0;background:var(--neutral-test);
+    display:none;align-items:center;justify-content:center;
+    flex-direction:column;z-index:50;user-select:none;-webkit-user-select:none;
+  }
+  #stage.on{display:flex}
+  #stimulus{
+    font-family:var(--data);font-size:min(26vh,190px);color:#141414;
+    line-height:1;min-height:1em;
+  }
+  #stageNote{
+    position:absolute;bottom:24px;color:#EFEFEF;font-size:.85rem;
+    font-family:var(--body);text-align:center;padding:0 20px;
+  }
+  #bigButton{
+    position:fixed;left:0;right:0;bottom:0;height:26vh;
+    background:rgba(0,0,0,.14);border:0;color:#F2F2F2;
+    font-size:1.1rem;display:none;
+  }
+  #bigButton.on{display:block}
+
+  /* --- cartes de tri --- */
+  .sortWrap{display:flex;flex-direction:column;align-items:center;gap:26px;width:100%;padding:0 12px}
+  .keyRow{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+  .cardFace{
+    background:#F7F7F5;border:1px solid #4a4a4a;width:92px;height:126px;
+    display:flex;flex-wrap:wrap;align-content:center;justify-content:center;
+    gap:5px;padding:8px;cursor:pointer;
+  }
+  .cardFace.target{cursor:default;border-width:2px;border-color:#1a1a1a}
+  .cardFace:not(.target):hover{background:#fff;border-color:#111}
+  .glyph{width:20px;height:20px}
+  .fb{font-family:var(--body);color:#F2F2F2;font-size:1.1rem;min-height:1.6em}
+
+  /* --- résultats --- */
+  table{border-collapse:collapse;width:100%;font-size:.9rem;margin-top:8px}
+  th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--rule)}
+  th{font-family:var(--data);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);font-weight:500}
+  td.num{font-family:var(--data)}
+  .flag{font-family:var(--data);font-size:.75rem;padding:2px 7px;border:1px solid}
+  .flag.ok{color:var(--moss);border-color:var(--moss)}
+  .flag.watch{color:var(--ochre);border-color:var(--ochre)}
+  .flag.out{color:var(--plum);border-color:var(--plum)}
+  canvas{width:100%;height:auto;border:1px solid var(--rule);background:var(--paper-2);margin-top:10px}
+  textarea{
+    width:100%;height:130px;font-family:var(--data);font-size:.78rem;
+    border:1px solid var(--rule);padding:10px;background:#fff;color:var(--ink);
+  }
+  .warn{border-left:3px solid var(--ochre);padding-left:14px;margin:18px 0}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap" id="app">
+
+  <!-- ACCUEIL -->
+  <section id="home">
+    <div class="eyebrow">Carnet d'épreuves · référence + exploration</div>
+    <h1>Attention soutenue, inhibition,<br>flexibilité cognitive</h1>
+    <p class="lede">Deux épreuves numériques destinées à décrire l'attention, l'inhibition et la flexibilité cognitive. La structure des protocoles publiés est reproduite autant que possible ; les adaptations numériques et les indicateurs dérivés sont explicitement séparés des références externes.</p>
+
+    <div class="warn">
+      <p class="muted"><strong>Statut.</strong> Cet outil n'établit aucun diagnostic. Les valeurs publiées sont présentées comme références externes descriptives ; un écart ne constitue pas à lui seul un trouble. Les données dynamiques et les adaptations numériques sont identifiées comme indicateurs fonctionnels.</p>
+    </div>
+
+    <div class="card">
+      <h3>Séance</h3>
+      <div class="grid g3" style="margin-top:10px">
+        <div><label for="pid">Identifiant</label><input id="pid" value="L"></div>
+        <div><label for="age">Âge (version actuelle)</label><input id="age" type="number" value="10" readonly></div>
+        <div><label for="sexe">Sexe</label><select id="sexe"><option value="M">Garçon</option><option value="F">Fille</option></select></div>
+        <div><label for="cond">Condition / note</label><input id="cond" placeholder="matin, après l'école…"></div>
+      </div>
+      <p class="muted" style="margin-top:10px">Cette version est volontairement verrouillée à 10 ans : les références pédiatriques affichées ci-dessous ne sont utilisées qu'à cet âge.</p>
+    </div>
+
+    <div class="card">
+      <h3>Épreuve d'attention — mode de passation</h3>
+      <div class="grid g3" style="margin-top:10px">
+        <div><label for="cptMode">Mode CPT</label>
+          <select id="cptMode" onchange="syncCptMode()">
+            <option value="reference" selected>Référence — structure Conners 2003</option>
+            <option value="exploratory">Exploratoire — paramètres libres</option>
+          </select></div>
+        <div><label for="cptForm">Forme de séquence</label>
+          <select id="cptForm"><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></div>
+      </div>
+      <div id="referenceCptInfo" class="warn" style="margin-top:12px"><p style="margin:0"><strong>Mode Référence :</strong> 360 essais, 18 sous-blocs × 20, 6 blocs temporels, affichage 250 ms, 10 % de X, ISI 1/2/4 s block-randomisés. Réponse par <strong>barre Espace uniquement</strong>. La structure publiée est reproduite, mais la séquence exacte de lettres du test commercial n'est pas disponible : les comparaisons aux données de Conners et al. (2003) sont donc des <strong>références externes de niveau B</strong>, pas une reproduction commerciale étalonnée.</p></div>
+      <div id="exploreControls" class="grid g3" style="margin-top:14px;display:none">
+        <div><label for="dur">Durée CPT</label><select id="dur"><option value="6">6 min</option><option value="10">10 min</option><option value="14" selected>14 min</option></select></div>
+        <div><label for="isi">ISI fixe</label><select id="isi"><option value="1000">1 s</option><option value="1500">1,5 s</option><option value="2000" selected>2 s</option><option value="4000">4 s</option></select></div>
+        <div><label for="nogo">Proportion de X</label><select id="nogo"><option value="0.10" selected>10 %</option><option value="0.20">20 %</option><option value="0.25">25 %</option><option value="0.35">35 %</option></select></div>
+      </div>
+      <p id="exploreNote" class="muted" style="display:none;margin-top:10px">En mode exploratoire, la barre Espace et le bouton tactile sont acceptés. Les scores restent utiles en suivi intra-individuel, mais aucune référence Conners n'est appliquée.</p>
+    </div>
+
+    <div class="card">
+      <h3>Références scientifiques utilisées</h3>
+      <p class="muted"><strong>CPT :</strong> Conners, Epstein, Angold & Klaric (2003), échantillon épidémiologique N=816. Pour 10 ans, la comparaison descriptive utilise la tranche 9–11 ans, séparée par sexe, pour RT moyen, omissions, commissions, d′ et β. Le SD et le CV des RT calculés par cette application restent des indicateurs dérivés : ils ne sont pas assimilés au Hit RT(SE) publié.</p>
+      <p class="muted"><strong>MCST :</strong> Cianchetti et al. (2007), N=1126 enfants de 4–13 ans. La version ci-dessous reproduit les règles d'administration Nelson utilisées dans l'étude et affiche les repères publiés à 10 ans. L'ordre exact physique des 24 cartes n'étant pas publié dans l'article, le jeu numérique utilise un ordre fixe reconstruit et est signalé comme adaptation de niveau B.</p>
+    </div>
+
+    <div class="row">
+      <button onclick="startCPT()">Lancer l'épreuve d'attention</button>
+      <button class="ghost" onclick="startWCST()">Lancer le MCST</button>
+      <button class="ghost" onclick="showResults()">Voir les résultats</button>
+    </div>
+
+    <h2>Épreuve 1 — attention soutenue et inhibition</h2>
+    <p>Appuyer pour toutes les lettres sauf <strong>X</strong>. Le mode Référence reproduit la structure temporelle publiée du CPT not-X ; le mode Exploratoire permet de modifier la durée, l'ISI et la fréquence de X sans appliquer les références externes.</p>
+    <table>
+      <tr><th>Mesure</th><th>Statut</th></tr>
+      <tr><td>Omissions, commissions, RT moyen, d′, β</td><td>Référence externe Conners en mode Référence</td></tr>
+      <tr><td>SD du RT, CV du RT</td><td>Indicateurs dérivés — pas assimilés au Hit RT(SE)</td></tr>
+      <tr><td>Évolution sur 6 blocs et selon ISI</td><td>Dynamique intra-individuelle</td></tr>
+      <tr><td>Réponses &lt; 100 ms</td><td>Persévérations / anticipations selon la définition CPT-II</td></tr>
+    </table>
+
+    <h2>Épreuve 2 — flexibilité cognitive (MCST)</h2>
+    <p>48 cartes de réponse non ambiguës (deux jeux de 24). La première règle valide choisie par l'enfant devient correcte ; après 6 tris corrects consécutifs, le changement de règle est explicitement annoncé. Les trois premières catégories sont différentes puis le même ordre est répété.</p>
+  </section>
+
+  <!-- RÉSULTATS -->
+  <section id="results" style="display:none">
+    <div class="eyebrow">Résultats</div>
+    <h1>Relevé de séance</h1>
+    <div id="resultBody"></div>
+    <div class="row">
+      <button class="ghost" onclick="goHome()">Retour</button>
+      <button class="ghost" onclick="copyText('csvSummary', event)">Copier le résumé (CSV)</button>
+      <button class="ghost" onclick="copyText('csvTrials', event)">Copier le détail par essai (CSV)</button>
+      <button class="ghost" onclick="downloadJSON()">Télécharger JSON</button>
+    </div>
+  </section>
+</div>
+
+<!-- SCÈNE DE PASSATION -->
+<div id="stage">
+  <div id="stimulus"></div>
+  <div id="sortArea" style="display:none"></div>
+  <div id="stageNote"></div>
+  <button id="bigButton" aria-label="Répondre">Appuyer</button>
+</div>
+
+<script>
+"use strict";
+
+const BATTERY_VERSION = 'attention-flex-v4.0';
+const CPT_VERSION = 'cpt-not-x-reference-v4.0';
+const MCST_VERSION = 'mcst-nelson-cianchetti-v4.0';
+const $ = id => document.getElementById(id);
+const stage = $('stage'), stim = $('stimulus'), note = $('stageNote'), big = $('bigButton'), sortArea = $('sortArea');
+const S = { cpt:null, wcst:null, meta:null, evals:null };
+let activeTest = null;
+let focusLoss = 0;
+
+function uid(){ return 's_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8); }
+function ensureMeta(){
+  if(!S.meta){
+    S.meta = {
+      sessionId:uid(), batteryVersion:BATTERY_VERSION,
+      id:$('pid').value||'-', age:10, sexe:$('sexe').value||'M', cond:$('cond').value||'',
+      date:new Date().toISOString(), timezone:Intl.DateTimeFormat().resolvedOptions().timeZone||'',
+      userAgent:navigator.userAgent, viewport:innerWidth+'x'+innerHeight, devicePixelRatio:window.devicePixelRatio||1
+    };
+  } else {
+    S.meta.id=$('pid').value||'-'; S.meta.sexe=$('sexe').value||'M'; S.meta.cond=$('cond').value||'';
+  }
+  return S.meta;
+}
+document.addEventListener('visibilitychange',()=>{ if(document.hidden && activeTest) focusLoss++; });
+
+function mean(a){ return a.length ? a.reduce((x,y)=>x+y,0)/a.length : NaN; }
+function sd(a){ if(a.length<2) return NaN; const m=mean(a); return Math.sqrt(a.reduce((s,x)=>s+(x-m)**2,0)/(a.length-1)); }
+function median(a){ if(!a.length)return NaN; const s=[...a].sort((x,y)=>x-y),m=Math.floor(s.length/2); return s.length%2?s[m]:(s[m-1]+s[m])/2; }
+function quantile(a,p){ if(!a.length)return NaN; const s=[...a].sort((x,y)=>x-y),i=(s.length-1)*p,lo=Math.floor(i),hi=Math.ceil(i); return lo===hi?s[lo]:s[lo]+(s[hi]-s[lo])*(i-lo); }
+function madRaw(a){ if(!a.length)return NaN; const m=median(a); return median(a.map(x=>Math.abs(x-m))); }
+function exGaussianMoments(a){
+  if(a.length<40)return null;
+  const m=mean(a),v=a.reduce((s,x)=>s+(x-m)**2,0)/a.length;
+  const m3=a.reduce((s,x)=>s+(x-m)**3,0)/a.length;
+  const tau=Math.cbrt(Math.max(0,m3/2)),sig2=v-tau*tau;
+  if(!Number.isFinite(tau)||sig2<=0)return null;
+  return {mu:m-tau,sigma:Math.sqrt(sig2),tau,method:'moments_approx'};
+}
+function f(v,d=0){ return v===null||v===undefined||Number.isNaN(+v) ? '—' : (+v).toFixed(d); }
+function fr(v){ return v===null||v===undefined||Number.isNaN(+v) ? '' : String(Math.round(+v*100)/100).replace('.',','); }
+function shuffle(a,rng=Math.random){ const x=[...a]; for(let i=x.length-1;i>0;i--){ const j=Math.floor(rng()*(i+1)); [x[i],x[j]]=[x[j],x[i]]; } return x; }
+function mulberry32(seed){ return function(){ let t=seed+=0x6D2B79F5; t=Math.imul(t^t>>>15,t|1); t^=t+Math.imul(t^t>>>7,t|61); return ((t^t>>>14)>>>0)/4294967296; }; }
+function seedFor(label){ let h=2166136261; for(const ch of label){ h^=ch.charCodeAt(0); h=Math.imul(h,16777619); } return h>>>0; }
+function linearSlope(y){ const pts=y.map((v,i)=>[i+1,v]).filter(p=>Number.isFinite(p[1])); if(pts.length<2)return NaN; const mx=mean(pts.map(p=>p[0])), my=mean(pts.map(p=>p[1])); const den=pts.reduce((s,p)=>s+(p[0]-mx)**2,0); return pts.reduce((s,p)=>s+(p[0]-mx)*(p[1]-my),0)/den; }
+function normInv(p){
+  const a=[-39.6968302866538,220.946098424521,-275.928510446969,138.357751867269,-30.6647980661472,2.50662827745924];
+  const b=[-54.4760987982241,161.585836858041,-155.698979859887,66.8013118877197,-13.2806815528857];
+  const c=[-0.00778489400243029,-0.322396458041136,-2.40075827716184,-2.54973253934373,4.37466414146497,2.93816398269878];
+  const d=[0.00778469570904146,0.32246712907004,2.445134137143,3.75440866190742];
+  const pl=0.02425;
+  if(p<=0)return -Infinity; if(p>=1)return Infinity;
+  if(p<pl){const q=Math.sqrt(-2*Math.log(p));return (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);}
+  if(p>1-pl){const q=Math.sqrt(-2*Math.log(1-p));return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);}
+  const q=p-.5,r=q*q; return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q/(((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);
+}
+function rateCorrected(k,n){ return n ? (k+0.5)/(n+1) : NaN; }
+function descriptiveZ(value, ref){ return Number.isFinite(value)&&ref&&ref[1]>0 ? (value-ref[0])/ref[1] : NaN; }
+function zText(z){ if(!Number.isFinite(z))return '—'; const a=Math.abs(z); return `${z>=0?'+':''}${z.toFixed(2)} SD${a>=1.65?' · écart descriptif marqué':a>=1?' · écart descriptif modéré':''}`; }
+function csvEsc(v){ const s=String(v??''); return /[;"\n\r]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; }
+function goHome(){ activeTest=null; stage.classList.remove('on'); $('home').style.display='block'; $('results').style.display='none'; scrollTo(0,0); }
+
+function syncCptMode(){
+  const ref=$('cptMode').value==='reference';
+  $('referenceCptInfo').style.display=ref?'block':'none';
+  $('exploreControls').style.display=ref?'none':'grid';
+  $('exploreNote').style.display=ref?'none':'block';
+}
+
+/* ================= CPT ================= */
+const LETTERS=['A','B','C','D','E','F','H','J','K','L','M','N','P','R','S','T'];
+const CPT_REF_10={
+  F:{rtMean:[450.72,79.58],omPct:[6.7,6.4],coPct:[58.2,17.8],dprime:[1.49,0.89],beta:[0.34,0.27]},
+  M:{rtMean:[424.64,65.96],omPct:[6.5,5.1],coPct:[68.3,17.3],dprime:[1.12,0.77],beta:[0.42,0.31]}
+};
+let cpt=null;
+function buildReferenceCPT(form){
+  const rng=mulberry32(seedFor('CPT_REF_'+form));
+  const seq=[];
+  for(let tb=1;tb<=6;tb++){
+    const isis=shuffle([1000,2000,4000],rng);
+    for(let sb=0;sb<3;sb++){
+      const acqBlock=(tb-1)*3+sb+1, isi=isis[sb];
+      const xPos=new Set(shuffle([...Array(20).keys()],rng).slice(0,2));
+      for(let j=0;j<20;j++){
+        const isX=xPos.has(j);
+        seq.push({n:seq.length+1,timeBlock:tb,acqBlock,trialInSubblock:j+1,isi,isX,letter:isX?'X':LETTERS[Math.floor(rng()*LETTERS.length)]});
+      }
+    }
+  }
+  return seq;
+}
+function buildExploratoryCPT(minutes,isi,pNoGo,form){
+  const n=Math.max(20,Math.round(minutes*60000/isi));
+  const rng=mulberry32(seedFor('CPT_EXP_'+form+'_'+minutes+'_'+isi+'_'+pNoGo));
+  const nX=Math.round(n*pNoGo), positions=new Set(shuffle([...Array(n).keys()],rng).slice(0,nX));
+  return [...Array(n)].map((_,i)=>({n:i+1,timeBlock:Math.min(6,Math.floor(i/(n/6))+1),acqBlock:null,trialInSubblock:null,isi,isX:positions.has(i),letter:positions.has(i)?'X':LETTERS[Math.floor(rng()*LETTERS.length)]}));
+}
+function startCPT(){
+  ensureMeta(); focusLoss=0; activeTest='cpt';
+  const mode=$('cptMode').value, form=$('cptForm').value;
+  const sequence=mode==='reference' ? buildReferenceCPT(form) : buildExploratoryCPT(+$('dur').value,+$('isi').value,+$('nogo').value,form);
+  cpt={mode,form,phase:'intro',sequence,i:0,trials:[],response:null,onset:0,hideTimer:null,endTimer:null,focusLoss:0,inputMethods:new Set()};
+  stage.classList.add('on'); sortArea.style.display='none'; stim.style.display='block'; stim.textContent='';
+  big.classList.toggle('on',mode!=='reference');
+  big.onclick=()=>handleCptAction('touch');
+  note.innerHTML=mode==='reference'
+    ? "Des lettres vont apparaître.<br><strong>Appuie sur la barre Espace pour chaque lettre — mais pas pour X.</strong><br><br>On commence par un entraînement. Appuie sur Espace pour démarrer."
+    : "Des lettres vont apparaître.<br><strong>Réponds pour chaque lettre — mais pas pour X.</strong><br><br>On commence par un entraînement. Appuie pour démarrer.";
+  document.removeEventListener('keydown',cptKey); document.addEventListener('keydown',cptKey);
+}
+function cptKey(e){ if(e.code!=='Space'||e.repeat)return; e.preventDefault(); handleCptAction('keyboard'); }
+function handleCptAction(method){
+  if(!cpt)return;
+  if(cpt.mode==='reference' && method!=='keyboard')return;
+  if(cpt.phase==='intro'){ startPracticeCPT(); return; }
+  if(cpt.phase==='ready'){ startMainCPT(); return; }
+  if(cpt.phase==='practice_trial'){ if(!cpt.response) cpt.response={rt:performance.now()-cpt.onset,method}; return; }
+  if(cpt.phase==='trial' && !cpt.response){ cpt.response={rt:performance.now()-cpt.onset,method}; cpt.inputMethods.add(method); }
+}
+function startPracticeCPT(){ cpt.phase='practice_feedback'; cpt.practiceSeq=['B','X','M','K','X','T']; cpt.practiceI=0; note.textContent='Entraînement'; setTimeout(nextPracticeCPT,350); }
+function nextPracticeCPT(){
+  if(cpt.practiceI>=cpt.practiceSeq.length){ cpt.phase='ready'; stim.textContent=''; note.innerHTML='Entraînement terminé.<br><strong>Appuie quand tu es prêt pour commencer la passation.</strong>'; return; }
+  cpt.phase='practice_trial'; cpt.response=null; const letter=cpt.practiceSeq[cpt.practiceI]; cpt.practiceLetter=letter; cpt.onset=performance.now(); stim.textContent=letter; note.textContent=`Entraînement ${cpt.practiceI+1}/${cpt.practiceSeq.length}`;
+  cpt.hideTimer=setTimeout(()=>{ if(cpt.phase==='practice_trial')stim.textContent=''; },250);
+  cpt.endTimer=setTimeout(finishPracticeCPT,1000);
+}
+function finishPracticeCPT(){
+  const isX=cpt.practiceLetter==='X', responded=!!cpt.response, ok=isX?!responded:responded;
+  stim.textContent=''; cpt.phase='practice_feedback'; note.textContent=ok?'Correct':'Erreur'; cpt.practiceI++; setTimeout(nextPracticeCPT,420);
+}
+function startMainCPT(){ cpt.phase='trial'; cpt.i=0; cpt.trials=[]; note.textContent=''; big.classList.toggle('on',cpt.mode!=='reference'); presentCPTTrial(); }
+function presentCPTTrial(){
+  if(cpt.i>=cpt.sequence.length){ endCPT(); return; }
+  const tr=cpt.sequence[cpt.i]; cpt.phase='trial'; cpt.response=null; cpt.onset=performance.now(); cpt.onsetWall=new Date().toISOString(); stim.textContent=tr.letter;
+  cpt.hideTimer=setTimeout(()=>{ if(cpt.phase==='trial')stim.textContent=''; },250);
+  cpt.endTimer=setTimeout(finishCPTTrial,tr.isi);
+}
+function finishCPTTrial(){
+  const plan=cpt.sequence[cpt.i], resp=cpt.response, rt=resp?Math.round(resp.rt):null;
+  const responded=!!resp, perseveration=responded && rt<100;
+  const type=responded ? (plan.isX?'commission':'hit') : (plan.isX?'rejet_correct':'omission');
+  cpt.trials.push({...plan,onsetPerf:cpt.onset,onsetWall:cpt.onsetWall,responseAtPerf:resp?cpt.onset+resp.rt:null,rt,responded,inputMethod:resp?resp.method:null,perseveration,type});
+  cpt.i++; presentCPTTrial();
+}
+function endCPT(){
+  clearTimeout(cpt.hideTimer); clearTimeout(cpt.endTimer); document.removeEventListener('keydown',cptKey); big.classList.remove('on'); stage.classList.remove('on'); stim.textContent=''; activeTest=null;
+  for(let i=0;i<cpt.trials.length-1;i++) cpt.trials[i].actualIsi=Math.round(cpt.trials[i+1].onsetPerf-cpt.trials[i].onsetPerf);
+  S.cpt=analyseCPT(cpt.trials,cpt); S.cpt.focusLoss=focusLoss; showResults();
+}
+function analyseCPT(trials,state){
+  const go=trials.filter(t=>!t.isX), nogo=trials.filter(t=>t.isX);
+  const validHits=go.filter(t=>t.responded&&!t.perseveration), hitRts=validHits.map(t=>t.rt);
+  const omissions=go.filter(t=>!t.responded).length, commissions=nogo.filter(t=>t.responded).length, perseverations=trials.filter(t=>t.perseveration).length;
+  const H=rateCorrected(go.filter(t=>t.responded).length,go.length), F=rateCorrected(commissions,nogo.length);
+  const zH=normInv(H), zF=normInv(F), dprime=zH-zF, beta=Math.exp((zF*zF-zH*zH)/2);
+  const blocks=[];
+  for(let b=1;b<=6;b++){
+    const a=trials.filter(t=>t.timeBlock===b), ag=a.filter(t=>!t.isX), an=a.filter(t=>t.isX), r=a.filter(t=>!t.isX&&t.responded&&!t.perseveration).map(t=>t.rt);
+    blocks.push({b,n:a.length,rt:mean(r),sd:sd(r),cv:sd(r)/mean(r),om:ag.length?100*ag.filter(t=>!t.responded).length/ag.length:NaN,co:an.length?100*an.filter(t=>t.responded).length/an.length:NaN});
+  }
+  const byIsi=[1000,2000,4000].map(isi=>{ const a=trials.filter(t=>t.isi===isi); if(!a.length)return null; const r=a.filter(t=>!t.isX&&t.responded&&!t.perseveration).map(t=>t.rt); return {isi,n:a.length,rt:mean(r),sd:sd(r)}; }).filter(Boolean);
+  const rtMedian=median(hitRts),rtMAD=madRaw(hitRts),rtP10=quantile(hitRts,.10),rtP90=quantile(hitRts,.90),rtP95=quantile(hitRts,.95);
+  const slowTailGap=rtP90-rtMedian, exg=exGaussianMoments(hitRts);
+  return {version:CPT_VERSION,mode:state.mode,form:state.form,nTrials:trials.length,nGo:go.length,nNoGo:nogo.length,rtMean:mean(hitRts),rtMedian,rtSD:sd(hitRts),rtMAD,rtP10,rtP90,rtP95,slowTailGap,exGaussian:exg,cv:sd(hitRts)/mean(hitRts),omissions,commissions,omPct:100*omissions/go.length,coPct:100*commissions/nogo.length,perseverations,dprime,beta,blocks,byIsi,rtBlockSlope:linearSlope(blocks.map(x=>x.rt)),trials,inputMethods:[...state.inputMethods]};
+}
+
+/* ================= MCST ================= */
+const COLORS={rouge:'#B4342E',vert:'#3E6B4F',bleu:'#2E4E86',jaune:'#C79A1E'};
+const SHAPES=['triangle','etoile','croix','cercle'], DIMS=['couleur','forme','nombre'];
+const KEYS=[{couleur:'rouge',forme:'triangle',nombre:1},{couleur:'vert',forme:'etoile',nombre:2},{couleur:'jaune',forme:'croix',nombre:3},{couleur:'bleu',forme:'cercle',nombre:4}];
+const MCST_REF_10={
+  M:{cats:[4.3,1.4],persev:[4.0,3.2],persevPct:[25.9,15.5],nonpersev:[10.7,5.4],totalErr:[14.7,7.4],fms:[0.5,0.7],conceptualPct:[59.8,19.8],ce:[26.9,10.4],cePlus:[27.5,10.2]},
+  F:{cats:[4.8,1.4],persev:[2.7,3.4],persevPct:[22.4,17.4],nonpersev:[8.0,5.5],totalErr:[10.7,7.5],fms:[0.7,0.9],conceptualPct:[70.3,19.4],ce:[31.6,10.9],cePlus:[32.2,10.7]}
+};
+let wc=null;
+function glyph(shape,color){ const c=COLORS[color]; if(shape==='cercle')return `<svg class="glyph" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="${c}"/></svg>`; if(shape==='triangle')return `<svg class="glyph" viewBox="0 0 20 20"><polygon points="10,2 18,18 2,18" fill="${c}"/></svg>`; if(shape==='croix')return `<svg class="glyph" viewBox="0 0 20 20"><path d="M7 2h6v5h5v6h-5v5H7v-5H2V7h5z" fill="${c}"/></svg>`; return `<svg class="glyph" viewBox="0 0 20 20"><polygon points="10,1 12.5,7.5 19,7.5 13.8,11.7 15.9,18.5 10,14.4 4.1,18.5 6.2,11.7 1,7.5 7.5,7.5" fill="${c}"/></svg>`; }
+function faceHTML(card){ return `<div class="cardFace target">${glyph(card.forme,card.couleur).repeat(card.nombre)}</div>`; }
+function buildMCST24(){
+  const all=[];
+  for(const couleur of Object.keys(COLORS)) for(const forme of SHAPES) for(let nombre=1;nombre<=4;nombre++){
+    const card={couleur,forme,nombre}; const ambigu=KEYS.some(k=>DIMS.filter(d=>k[d]===card[d]).length>=2); if(!ambigu)all.push(card);
+  }
+  return all;
+}
+function buildMCSTDeck(){ const rng=mulberry32(seedFor('MCST_FIXED_V2')); const set24=shuffle(buildMCST24(),rng); return [...set24.map(x=>({...x})),...set24.map(x=>({...x}))]; }
+function startWCST(){
+  ensureMeta(); focusLoss=0; activeTest='mcst';
+  wc={deck:buildMCSTDeck(),i:0,trials:[],cats:0,ruleOrder:[],currentRule:null,previousCompletedRule:null,streak:0,lastIncorrectDim:null,justSwitched:false,onset:0};
+  stage.classList.add('on'); stim.style.display='none'; big.classList.remove('on'); sortArea.style.display='block';
+  note.innerHTML="Range la carte du bas sous l'une des quatre cartes du haut.<br>Tu peux utiliser la couleur, la forme ou le nombre. On te dira seulement si c'est juste ou faux.<br><strong>Quand une règle est terminée, on te dira explicitement que les règles ont changé.</strong>";
+  sortArea.innerHTML='<div class="sortWrap"><button id="wcGo">Commencer</button></div>'; $('wcGo').onclick=()=>{note.textContent='';nextWC();};
+}
+function nextWC(){
+  if(wc.i>=wc.deck.length||wc.cats>=6){ endWC(); return; }
+  wc.card=wc.deck[wc.i]; wc.onset=performance.now();
+  sortArea.innerHTML=`<div class="sortWrap"><div class="keyRow">${KEYS.map(faceHTML).join('')}</div><div class="fb" id="wcFb"></div><div class="keyRow">${faceHTML(wc.card)}</div><div class="keyRow" id="wcChoices">${KEYS.map((k,i)=>`<button class="ghost" data-k="${i}" style="background:#f2f2f0;color:#1a1a1a;border-color:#4a4a4a;min-width:92px">${i+1}</button>`).join('')}</div></div>`;
+  sortArea.querySelectorAll('#wcChoices button').forEach(b=>b.onclick=()=>answerWC(+b.dataset.k));
+}
+function answerWC(k){
+  const rt=Math.round(performance.now()-wc.onset), chosen=KEYS[k], matched=DIMS.filter(d=>chosen[d]===wc.card[d]), chosenDim=matched.length===1?matched[0]:null;
+  const ruleBefore=wc.currentRule; let correct=false, newlyEstablished=false;
+  if(wc.currentRule===null){
+    const available=DIMS.filter(d=>!wc.ruleOrder.includes(d));
+    if(chosenDim&&available.includes(chosenDim)){ wc.currentRule=chosenDim; if(wc.ruleOrder.length<3)wc.ruleOrder.push(chosenDim); correct=true; newlyEstablished=true; }
+  } else correct=chosenDim===wc.currentRule;
+  let persev=false;
+  if(!correct&&chosenDim){
+    if(wc.justSwitched&&wc.previousCompletedRule&&chosenDim===wc.previousCompletedRule)persev=true;
+    else if(wc.lastIncorrectDim&&chosenDim===wc.lastIncorrectDim)persev=true;
+  }
+  const fms=!correct&&wc.streak>=3;
+  const streakBefore=wc.streak;
+  if(correct){ wc.streak++; wc.lastIncorrectDim=null; } else { wc.streak=0; wc.lastIncorrectDim=chosenDim; }
+  wc.trials.push({n:wc.i+1,card:{...wc.card},choix:k+1,chosenDim,matched,ruleBefore,rule:wc.currentRule,correct,newlyEstablished,perseveration:persev,fms,streakBefore,rt,justAfterSwitch:wc.justSwitched});
+  wc.i++; wc.justSwitched=false;
+  $('wcFb').textContent=correct?'Juste':'Faux';
+  if(correct&&wc.streak===6){
+    wc.cats++; wc.previousCompletedRule=wc.currentRule; wc.streak=0; wc.lastIncorrectDim=null; wc.justSwitched=true;
+    if(wc.cats<3) wc.currentRule=null; else if(wc.cats<6) wc.currentRule=wc.ruleOrder[wc.cats%3];
+    setTimeout(showRuleChange,500);
+  } else setTimeout(nextWC,500);
+}
+function showRuleChange(){
+  if(wc.cats>=6||wc.i>=wc.deck.length){ endWC(); return; }
+  sortArea.innerHTML='<div class="sortWrap"><div class="instr" style="color:#F2F2F2"><strong>Les règles ont changé.</strong><br>Trouve une autre règle.</div></div>';
+  note.textContent=''; setTimeout(nextWC,1100);
+}
+function conceptualLevelPct(trials){
+  let count=0,run=0; const flush=()=>{ if(run>=3)count+=run; run=0; };
+  for(const t of trials){ if(t.correct)run++; else flush(); if(t.correct&&run===6)flush(); } flush(); return trials.length?100*count/trials.length:NaN;
+}
+function endWC(){
+  stage.classList.remove('on'); sortArea.style.display='none'; stim.style.display='block'; activeTest=null;
+  const t=wc.trials, persev=t.filter(x=>x.perseveration).length, totalErr=t.filter(x=>!x.correct).length, nonpersev=totalErr-persev, fms=t.filter(x=>x.fms).length;
+  const surplus=t.length-wc.cats*6-totalErr;
+  const ce=wc.cats*6+(wc.cats===6?48-t.length:0);
+  const div={0:20,1:17.5,2:15,3:12.5,4:10,5:7.5};
+  const cePlus=wc.cats===6 ? ce+surplus/5 : ce+surplus/div[wc.cats];
+  const firstCatIdx=t.findIndex((x,i)=>i>=5&&t.slice(i-5,i+1).every(y=>y.correct));
+  const rtAfter=mean(t.filter(x=>x.justAfterSwitch).map(x=>x.rt)), rtStable=mean(t.filter(x=>!x.justAfterSwitch&&x.rule).map(x=>x.rt));
+  S.wcst={version:MCST_VERSION,n:t.length,cats:wc.cats,ruleOrder:wc.ruleOrder,persev,persevPct:totalErr?100*persev/totalErr:0,nonpersev,totalErr,totalErrPct:t.length?100*totalErr/t.length:0,fms,conceptualPct:conceptualLevelPct(t),surplus,ce,cePlus,essaisPremiereCat:firstCatIdx>=0?firstCatIdx+1:null,correctPct:t.length?100*t.filter(x=>x.correct).length/t.length:0,rtApresChangement:rtAfter,rtStable,coutChangement:rtAfter-rtStable,focusLoss,trials:t};
+  showResults();
+}
+
+/* ================= RÉSULTATS ================= */
+function refCell(value,ref,dec=1){ const z=descriptiveZ(value,ref); return `<td class="num">${f(value,dec)}</td><td class="num muted">${f(ref[0],dec)} ± ${f(ref[1],dec)}</td><td class="muted">${zText(z)}</td>`; }
+function showResults(){
+  $('home').style.display='none'; $('results').style.display='block'; scrollTo(0,0); const m=ensureMeta();
+  let html=`<p class="muted mono">${m.id} · 10 ans · ${m.sexe==='F'?'fille':'garçon'} · ${m.date.slice(0,16).replace('T',' ')}${m.cond?' · '+m.cond:''}</p>`;
+  if(!S.cpt&&!S.wcst){ $('resultBody').innerHTML=html+'<p>Aucune passation enregistrée.</p>'; return; }
+  if(S.cpt){
+    const c=S.cpt; html+=`<h2>Épreuve 1 — attention soutenue / inhibition</h2><p class="muted mono">${c.mode==='reference'?'Mode Référence':'Mode Exploratoire'} · ${c.nTrials} essais · forme ${c.form} · pertes de focus ${c.focusLoss}</p>`;
+    if(c.mode==='reference'){
+      const r=CPT_REF_10[m.sexe];
+      html+=`<div class="warn"><p style="margin:0"><strong>Niveau A/B — référence publiée très proche :</strong> Conners et al. (2003), tranche 9–11 ans. Le nombre d’essais, les blocs, les ISI, le taux de X et la règle de réponse sont reproduits ; la séquence exacte est reconstruite et ce fichier n’est pas le test commercial Conners.</p></div><table><tr><th>Mesure</th><th>Valeur</th><th>Référence publiée</th><th>Écart descriptif</th></tr>`;
+      html+=`<tr><td>RT moyen (ms)</td>${refCell(c.rtMean,r.rtMean,0)}</tr>`;
+      html+=`<tr><td>Omissions (%)</td>${refCell(c.omPct,r.omPct,1)}</tr>`;
+      html+=`<tr><td>Commissions (%)</td>${refCell(c.coPct,r.coPct,1)}</tr>`;
+      html+=`<tr><td>d′</td>${refCell(c.dprime,r.dprime,2)}</tr>`;
+      html+=`<tr><td>β</td>${refCell(c.beta,r.beta,2)}</tr></table>`;
+    } else html+=`<div class="warn"><p style="margin:0"><strong>Mode Exploratoire :</strong> aucune norme Conners n'est appliquée. Les valeurs ci-dessous servent au profil fonctionnel et au suivi longitudinal à protocole identique.</p></div>`;
+    html+=`<h3>Indicateurs dérivés</h3><table><tr><th>Mesure</th><th>Valeur</th><th>Statut</th></tr><tr><td>Médiane RT</td><td class="num">${f(c.rtMedian)} ms</td><td class="muted">C — moins sensible à la queue lente</td></tr><tr><td>SD des RT valides</td><td class="num">${f(c.rtSD)} ms</td><td class="muted">C — dérivé, non assimilé au Hit RT(SE)</td></tr><tr><td>MAD brut</td><td class="num">${f(c.rtMAD)} ms</td><td class="muted">C — dispersion robuste</td></tr><tr><td>P10 / P90 / P95</td><td class="num">${f(c.rtP10)} / ${f(c.rtP90)} / ${f(c.rtP95)} ms</td><td class="muted">C — structure de la distribution</td></tr><tr><td>Queue lente P90−P50</td><td class="num">${f(c.slowTailGap)} ms</td><td class="muted">C — réponses exceptionnellement lentes</td></tr><tr><td>CV des RT</td><td class="num">${f(c.cv,3)}</td><td class="muted">C — dérivé</td></tr><tr><td>Ex-Gaussien τ (approx.)</td><td class="num">${c.exGaussian?f(c.exGaussian.tau):'—'} ms</td><td class="muted">D — méthode des moments, contexte de recherche uniquement</td></tr><tr><td>Persévérations / réponses &lt;100 ms</td><td class="num">${c.perseverations}</td><td class="muted">définition CPT-II ; pas de norme appliquée ici</td></tr><tr><td>Pente RT sur 6 blocs</td><td class="num">${f(c.rtBlockSlope,1)} ms/bloc</td><td class="muted">C — dynamique intra-individuelle</td></tr></table>`;
+    html+=`<h3>Évolution sur 6 blocs</h3><table><tr><th>Bloc</th><th>RT</th><th>SD RT</th><th>CV</th><th>Omissions</th><th>Commissions</th></tr>${c.blocks.map(b=>`<tr><td>${b.b}</td><td class="num">${f(b.rt)} ms</td><td class="num">${f(b.sd)} ms</td><td class="num">${f(b.cv,3)}</td><td class="num">${f(b.om,1)} %</td><td class="num">${f(b.co,1)} %</td></tr>`).join('')}</table>`;
+    if(c.byIsi.length>1) html+=`<h3>Profil selon l'ISI</h3><table><tr><th>ISI</th><th>RT moyen</th><th>SD RT</th></tr>${c.byIsi.map(x=>`<tr><td>${x.isi/1000} s</td><td class="num">${f(x.rt)} ms</td><td class="num">${f(x.sd)} ms</td></tr>`).join('')}</table>`;
+    html+=`<h3>Trace des temps de réaction</h3><canvas id="trace" width="820" height="240"></canvas>`;
+  }
+  if(S.wcst){
+    const w=S.wcst,r=MCST_REF_10[m.sexe];
+    html+=`<h2>Épreuve 2 — MCST / flexibilité cognitive</h2><p class="muted mono">${w.n} cartes utilisées sur 48 · ordre des règles ${w.ruleOrder.join(' → ')||'—'} · pertes de focus ${w.focusLoss}</p><div class="warn"><p style="margin:0"><strong>Niveau B — référence externe proche :</strong> procédure Nelson/Cianchetti reproduite (48 cartes non ambiguës, première règle choisie, 6 bonnes réponses, changement annoncé, ordre répété) ; l’ordre numérique exact des cartes est reconstruit.</p></div>`;
+    html+=`<table><tr><th>Mesure</th><th>Valeur</th><th>Référence 10 ans</th><th>Écart descriptif</th></tr>`;
+    html+=`<tr><td>Catégories complétées</td>${refCell(w.cats,r.cats,1)}</tr>`;
+    html+=`<tr><td>Erreurs persévératives (Nelson)</td>${refCell(w.persev,r.persev,1)}</tr>`;
+    html+=`<tr><td>% persévératives / total erreurs</td>${refCell(w.persevPct,r.persevPct,1)}</tr>`;
+    html+=`<tr><td>Erreurs non persévératives</td>${refCell(w.nonpersev,r.nonpersev,1)}</tr>`;
+    html+=`<tr><td>Total erreurs</td>${refCell(w.totalErr,r.totalErr,1)}</tr>`;
+    html+=`<tr><td>Failure to maintain set (≥3)</td>${refCell(w.fms,r.fms,1)}</tr>`;
+    html+=`<tr><td>% réponses de niveau conceptuel (≥3)</td>${refCell(w.conceptualPct,r.conceptualPct,1)}</tr>`;
+    html+=`<tr><td>Categorizing efficiency</td>${refCell(w.ce,r.ce,1)}</tr>`;
+    html+=`<tr><td>Categorizing efficiency plus</td>${refCell(w.cePlus,r.cePlus,1)}</tr></table>`;
+    html+=`<h3>Indicateurs numériques complémentaires</h3><table><tr><th>Mesure</th><th>Valeur</th><th>Statut</th></tr><tr><td>Essais jusqu'à la 1re catégorie</td><td class="num">${w.essaisPremiereCat??'—'}</td><td class="muted">C — dynamique</td></tr><tr><td>TR juste après changement</td><td class="num">${f(w.rtApresChangement)} ms</td><td class="muted">C — adaptation</td></tr><tr><td>TR en régime stable</td><td class="num">${f(w.rtStable)} ms</td><td class="muted">C — adaptation</td></tr><tr><td>Coût du changement</td><td class="num">${f(w.coutChangement)} ms</td><td class="muted">C — dérivé, non normé</td></tr><tr><td>Réponses correctes</td><td class="num">${f(w.correctPct,1)} %</td><td class="muted">brut</td></tr></table>`;
+  }
+  html+=`<h2>Export</h2><p class="muted">Le JSON conserve les essais complets, les paramètres de protocole, les métadonnées et un <code>analysisProfile</code> standardisé pour le tableau de bord transversal. Les CSV sont destinés à un usage rapide dans un tableur.</p><h3>Résumé</h3><textarea id="csvSummary" readonly>${csvSummary(m)}</textarea><h3>Détail par essai</h3><textarea id="csvTrials" readonly>${csvTrials(m)}</textarea>`;
+  $('resultBody').innerHTML=html; if(S.cpt)drawTrace(S.cpt);
+}
+function drawTrace(c){ const cv=$('trace'); if(!cv)return; const ctx=cv.getContext('2d'),W=cv.width,H=cv.height,pad=34; ctx.clearRect(0,0,W,H); const vals=c.trials.filter(t=>t.responded&&!t.isX&&!t.perseveration).map(t=>t.rt); const maxRT=Math.max(900,Math.ceil(Math.max(...vals,900)/100)*100); ctx.strokeStyle='#C3C9BE';ctx.fillStyle='#5A635C';ctx.font='10px ui-monospace,monospace'; for(let y=0;y<=maxRT;y+=200){const py=H-pad-(y/maxRT)*(H-pad*1.6);ctx.beginPath();ctx.moveTo(pad,py);ctx.lineTo(W-8,py);ctx.stroke();ctx.fillText(y+' ms',2,py-3);} const n=c.trials.length; c.trials.forEach((t,i)=>{const x=pad+(i/Math.max(1,n-1))*(W-pad-10); if(t.responded&&!t.isX&&!t.perseveration){const y=H-pad-(t.rt/maxRT)*(H-pad*1.6);ctx.fillStyle='#1C2321';ctx.fillRect(x-1,y-1,2,2);} else if(t.type==='omission'){ctx.fillStyle='#B8811F';ctx.fillRect(x-1.5,H-pad+3,3,6);} else if(t.type==='commission'){ctx.fillStyle='#6B3F5B';ctx.beginPath();ctx.arc(x,pad-14,3,0,Math.PI*2);ctx.fill();}}); }
+
+
+function metricRecord(id,domain,label,value,unit,evidence,source,note='',reference=null,direction='neutral',paradigm=''){
+  return {id,domain,label,value:(value===null||value===undefined||value==='')?null:(Number.isFinite(+value)?+value:null),unit,evidence,source,note,reference,direction,paradigm:paradigm||id.split('.')[0]};
+}
+function buildAnalysisProfile(){
+  const m=ensureMeta(), out=[];
+  if(S.cpt){
+    const c=S.cpt, ref=(c.mode==='reference'?CPT_REF_10[m.sexe]:null);
+    const src='Conners et al., 2003';
+    const addRef=(id,dom,label,val,unit,key,dir)=>out.push(metricRecord(id,dom,label,val,unit,'A/B',src,
+      'Comparaison descriptive autorisée uniquement en mode Référence ; séquence numérique reconstruite.',
+      ref?{mean:ref[key][0],sd:ref[key][1],age:'9–11 ans',sex:m.sexe,comparable:true}:null,dir));
+    if(c.mode==='reference'){
+      addRef('cpt.rt_mean','attention_soutenue','CPT — RT moyen',c.rtMean,'ms','rtMean','lower_better');
+      addRef('cpt.omissions','attention_soutenue','CPT — omissions',c.omPct,'%','omPct','lower_better');
+      addRef('cpt.commissions','inhibition_reponse','CPT — commissions',c.coPct,'%','coPct','lower_better');
+      addRef('cpt.dprime','attention_soutenue','CPT — d′',c.dprime,'','dprime','higher_better');
+      addRef('cpt.beta','inhibition_reponse','CPT — β',c.beta,'','beta','neutral');
+    } else {
+      out.push(metricRecord('cpt.rt_mean','attention_soutenue','CPT — RT moyen',c.rtMean,'ms','C','CPT exploratoire','Paramètres libres : aucune norme Conners appliquée.',null,'lower_better'));
+      out.push(metricRecord('cpt.omissions','attention_soutenue','CPT — omissions',c.omPct,'%','C','CPT exploratoire','Paramètres libres : aucune norme Conners appliquée.',null,'lower_better'));
+      out.push(metricRecord('cpt.commissions','inhibition_reponse','CPT — commissions',c.coPct,'%','C','CPT exploratoire','Paramètres libres : aucune norme Conners appliquée.',null,'lower_better'));
+    }
+    out.push(metricRecord('cpt.rt_sd','stabilite_attentionnelle','CPT — SD des RT',c.rtSD,'ms','C',src,'Variabilité intra-individuelle ; ne pas assimiler au Hit RT(SE).',null,'lower_better'));
+    out.push(metricRecord('cpt.rt_median','stabilite_attentionnelle','CPT — médiane RT',c.rtMedian,'ms','C','Kofler et al., 2013','Complète le RT moyen ; la variabilité du RT est un signal de groupe robuste mais non spécifique.',null,'lower_better','cpt'));
+    out.push(metricRecord('cpt.rt_mad','stabilite_attentionnelle','CPT — MAD RT',c.rtMAD,'ms','C','Kofler et al., 2013','Dispersion robuste intra-individuelle.',null,'lower_better','cpt'));
+    out.push(metricRecord('cpt.rt_p90','stabilite_attentionnelle','CPT — P90 RT',c.rtP90,'ms','C','Kofler et al., 2013 ; Bella-Fernández et al., 2024','Décrit la queue lente de la distribution.',null,'lower_better','cpt'));
+    out.push(metricRecord('cpt.slow_tail','stabilite_attentionnelle','CPT — queue lente P90−P50',c.slowTailGap,'ms','C','Bella-Fernández et al., 2024','Indicateur de queue lente ; aucune norme directe de cette implémentation.',null,'lower_better','cpt'));
+    if(c.exGaussian)out.push(metricRecord('cpt.exgauss_tau','stabilite_attentionnelle','CPT — τ ex-Gaussien approximatif',c.exGaussian.tau,'ms','D','Bella-Fernández et al., 2024','Méthode des moments exploratoire ; ne pas assimiler aux estimations publiées par maximum de vraisemblance.',null,'lower_better','cpt'));
+    out.push(metricRecord('cpt.rt_cv','stabilite_attentionnelle','CPT — CV des RT',c.cv,'','C',src,'Indice dérivé sans norme externe directe.',null,'lower_better'));
+    out.push(metricRecord('cpt.rt_slope','stabilite_attentionnelle','CPT — pente temporelle',c.rtBlockSlope,'ms/bloc','C',src,'Dynamique sur six blocs ; interprétation intra-individuelle.',null,'lower_better'));
+  }
+  if(S.wcst){
+    const w=S.wcst, r=MCST_REF_10[m.sexe], src='Cianchetti et al., 2007';
+    const add=(id,label,val,unit,key,dir)=>out.push(metricRecord(id,'flexibilite_cognitive',label,val,unit,'B',src,
+      'Référence pédiatrique à 10 ans ; procédure très proche, ordre exact des cartes reconstruit.',
+      {mean:r[key][0],sd:r[key][1],age:'10 ans',sex:m.sexe,comparable:true},dir));
+    add('mcst.categories','MCST — catégories complétées',w.cats,'','cats','higher_better');
+    add('mcst.persev','MCST — erreurs persévératives',w.persev,'','persev','lower_better');
+    add('mcst.persev_pct','MCST — % persévératif',w.persevPct,'%','persevPct','lower_better');
+    add('mcst.conceptual_pct','MCST — réponses conceptuelles',w.conceptualPct,'%','conceptualPct','higher_better');
+    add('mcst.ce','MCST — Categorizing Efficiency',w.ce,'','ce','higher_better');
+    add('mcst.ce_plus','MCST — Categorizing Efficiency Plus',w.cePlus,'','cePlus','higher_better');
+    out.push(metricRecord('mcst.switch_cost','flexibilite_cognitive','MCST — coût temporel du changement',w.coutChangement,'ms','C',src,'Mesure numérique dérivée de cette implémentation ; non normée.',null,'lower_better'));
+  }
+  return out;
+}
+function csvSummary(m){
+  const c=S.cpt,w=S.wcst;
+  const head=['session_id','battery_version','id','date','age','sexe','condition','cpt_mode','cpt_form','cpt_n','cpt_rt_mean','cpt_rt_median','cpt_rt_sd','cpt_rt_mad','cpt_rt_p90','cpt_rt_p95','cpt_slow_tail','cpt_exgauss_tau','cpt_cv','cpt_om_pct','cpt_co_pct','cpt_dprime','cpt_beta','cpt_perseverations','cpt_rt_slope','mcst_n','mcst_categories','mcst_persev','mcst_persev_pct','mcst_nonpersev','mcst_total_errors','mcst_fms','mcst_conceptual_pct','mcst_ce','mcst_ce_plus','mcst_switch_cost_ms'];
+  const row=[m.sessionId,m.batteryVersion,m.id,m.date,m.age,m.sexe,m.cond,c?c.mode:'',c?c.form:'',c?c.nTrials:'',c?fr(c.rtMean):'',c?fr(c.rtMedian):'',c?fr(c.rtSD):'',c?fr(c.rtMAD):'',c?fr(c.rtP90):'',c?fr(c.rtP95):'',c?fr(c.slowTailGap):'',c&&c.exGaussian?fr(c.exGaussian.tau):'',c?fr(c.cv):'',c?fr(c.omPct):'',c?fr(c.coPct):'',c?fr(c.dprime):'',c?fr(c.beta):'',c?c.perseverations:'',c?fr(c.rtBlockSlope):'',w?w.n:'',w?w.cats:'',w?w.persev:'',w?fr(w.persevPct):'',w?w.nonpersev:'',w?w.totalErr:'',w?w.fms:'',w?fr(w.conceptualPct):'',w?fr(w.ce):'',w?fr(w.cePlus):'',w?fr(w.coutChangement):''];
+  return head.map(csvEsc).join(';')+'\n'+row.map(csvEsc).join(';');
+}
+function csvTrials(m){
+  const lines=[['session_id','epreuve','essai','bloc','sous_bloc','isi_ms','stimulus','reponse','dimension_choisie','regle','rt_ms','resultat','perseveration','fms']];
+  if(S.cpt)S.cpt.trials.forEach(t=>lines.push([m.sessionId,'cpt',t.n,t.timeBlock,t.acqBlock??'',t.isi,t.letter,t.inputMethod||'', '', '',t.rt??'',t.type,t.perseveration?1:0,'']));
+  if(S.wcst)S.wcst.trials.forEach(t=>lines.push([m.sessionId,'mcst',t.n,'','', '',`${t.card.couleur}_${t.card.forme}_${t.card.nombre}`,`cle_${t.choix}`,t.chosenDim||'aucune',t.rule||'',t.rt,t.correct?'correct':(t.perseveration?'perseveration':'erreur_autre'),t.perseveration?1:0,t.fms?1:0]));
+  return lines.map(r=>r.map(csvEsc).join(';')).join('\n');
+}
+function copyText(id,ev){ const el=$(id); el.select(); el.setSelectionRange(0,999999); navigator.clipboard.writeText(el.value).then(()=>{ if(ev&&ev.target){const b=ev.target,o=b.textContent;b.textContent='Copié';setTimeout(()=>b.textContent=o,1200);}}); }
+function downloadJSON(){ const payload={schemaVersion:'neuro-battery-analysis-2',meta:ensureMeta(),analysisProfile:buildAnalysisProfile(),cpt:S.cpt,wcst:S.wcst}; const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`batterie_attention_${S.meta.sessionId}.json`; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
+
+syncCptMode();
+</script>
+
+<style id="nb-runner-style">
+  #home,#results{display:none!important}
+  #quit{display:none!important}
+  .nb-runner-intro,.nb-runner-phase,.nb-runner-done{position:fixed;inset:0;z-index:9999;background:#E6E9E4;color:#1C2321;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  .nb-runner-box{width:min(620px,94vw);background:#F2F4F0;border:1px solid #C3C9BE;padding:26px}
+  .nb-runner-box h1{font-family:"Palatino Linotype",Palatino,Georgia,serif;font-size:1.8rem;margin:0 0 10px}
+  .nb-runner-box p{line-height:1.55;color:#5A635C}
+  .nb-runner-box button{margin-top:12px}
+</style>
+
+<script>
+(()=>{
+  const Q=new URLSearchParams(location.search); if(Q.get('runner')!=='1') return;
+  const test=Q.get('test')||'cpt';
+  const meta={pid:Q.get('pid')||'-',sex:Q.get('sex')||'M',cond:Q.get('cond')||'',form:Q.get('form')||'A',masterSession:Q.get('session')||''};
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const clean=x=>JSON.parse(JSON.stringify(x,(k,v)=>v instanceof Set?[...v]:v));
+  const labels={cpt:['CPT — attention soutenue','Répondre à toutes les lettres sauf X. Mode référence Conners 2003.'],mcst:['MCST — flexibilité cognitive','Tri de cartes avec changement de règle et analyse des persévérations.']};
+  function setMeta(){
+    if(document.getElementById('pid')) $('pid').value=meta.pid;
+    if(document.getElementById('sexe')) $('sexe').value=meta.sex;
+    if(document.getElementById('cond')) $('cond').value=meta.cond;
+    if(document.getElementById('cptMode')) $('cptMode').value='reference';
+    if(document.getElementById('cptForm')) $('cptForm').value=['A','B','C'].includes(meta.form)?meta.form:'A';
+    if(typeof syncCptMode==='function') syncCptMode();
+  }
+  function send(type,payload={}){ parent.postMessage({app:'neuro-observation-web',type,test,...payload},'*'); }
+  function finish(){
+    const result=test==='cpt'?S.cpt:S.wcst;
+    const profile=typeof buildAnalysisProfile==='function'?buildAnalysisProfile():[];
+    send('test-complete',{payload:clean({engine:'attention-v4',masterSession:meta.masterSession,meta:ensureMeta(),result,analysisProfile:profile})});
+    showDone();
+  }
+  function showDone(){ document.body.insertAdjacentHTML('beforeend','<div class="nb-runner-done"><div class="nb-runner-box"><h1>Épreuve terminée</h1><p>Le résultat a été transmis à la séance. Vous pouvez revenir à la batterie.</p></div></div>'); }
+  const originalShow=showResults; showResults=function(){finish();};
+  const originalHome=goHome; goHome=function(){send('test-cancelled');};
+  setMeta();
+  const [title,desc]=labels[test]||labels.cpt;
+  const intro=document.createElement('div'); intro.className='nb-runner-intro'; intro.innerHTML=`<div class="nb-runner-box"><div style="font:12px ui-monospace;color:#6B3F5B;letter-spacing:.12em;text-transform:uppercase">Épreuve</div><h1>${esc(title)}</h1><p>${esc(desc)}</p><p><strong>Les données de cette épreuve restent uniquement dans la séance en mémoire du navigateur parent.</strong></p><button id="nbStart">Commencer</button></div>`; document.body.appendChild(intro);
+  document.getElementById('nbStart').onclick=()=>{intro.remove();setMeta(); if(test==='cpt') startCPT(); else startWCST();};
+  send('runner-ready');
+})();
+</script>
+</body>
+</html>
